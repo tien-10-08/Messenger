@@ -4,8 +4,7 @@ import { loginUser } from "../api/authService";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
-import InputField from "../components/InputField";
-import PrimaryButton from "../components/PrimaryButton";
+import {InputField, PrimaryButton} from "../utils/Field";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });

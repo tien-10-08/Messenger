@@ -9,7 +9,6 @@ const AuthLayout = ({ children, title }) => {
         {children}
       </div>
       <p className="mt-6 text-sm text-gray-500">
-        © {new Date().getFullYear()} Messenger Clone by <span className="font-semibold text-blue-500">Tiến Đỗ</span>
       </p>
     </div>
   );

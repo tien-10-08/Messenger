@@ -3,8 +3,7 @@ import { useState } from "react";
 import { registerUser } from "../api/authService";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
-import InputField from "../components/InputField";
-import PrimaryButton from "../components/PrimaryButton";
+import {InputField, PrimaryButton} from "../utils/Field";
 
 const Register = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
