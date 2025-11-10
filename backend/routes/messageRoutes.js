@@ -1,14 +1,31 @@
+// routes/messageRoutes.js
 import express from "express";
+import {
+  sendMessage,
+  getMessagesByConversation,
+  markAsSeen,
+  uploadMediaMessage,
+} from "../controllers/messageController.js";
 import { verifyTokenMiddleware } from "../middleware/authMiddleware.js";
-import { sendMessage, getMessagesByConversation } from "../controllers/messageController.js";
 import { upload } from "../middleware/uploadMiddleware.js";
-import { uploadMediaMessage } from "../controllers/messageController.js";
 
 const router = express.Router();
 
-router.get("/:id", verifyTokenMiddleware, getMessagesByConversation); // id = conversationId
+// 🔹 Lấy tất cả tin nhắn theo conversationId
+router.get("/:id", verifyTokenMiddleware, getMessagesByConversation);
+
+// 🔹 Gửi tin nhắn text
 router.post("/", verifyTokenMiddleware, sendMessage);
+
+// 🔹 Đánh dấu tin nhắn đã xem
 router.patch("/:id/seen", verifyTokenMiddleware, markAsSeen);
-router.post("/upload", verifyTokenMiddleware, upload.single("file"), uploadMediaMessage);
+
+// 🔹 Upload ảnh hoặc voice
+router.post(
+  "/upload",
+  verifyTokenMiddleware,
+  upload.single("file"),
+  uploadMediaMessage
+);
 
 export default router;

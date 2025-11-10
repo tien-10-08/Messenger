@@ -15,10 +15,8 @@ import messageRoutes from "./routes/messageRoutes.js";
 dotenv.config();
 
 connectDB();
-
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || "*",
@@ -45,6 +43,7 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT;
+
 server.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
