@@ -1,9 +1,11 @@
+// src/pages/Login.jsx
 import { useState } from "react";
 import { loginUser } from "../api/authService";
-import InputField from "../components/InputField";
-import Button from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
+import InputField from "../components/InputField";
+import PrimaryButton from "../components/PrimaryButton";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -19,9 +21,8 @@ const Login = () => {
     try {
       setLoading(true);
       const res = await loginUser(form);
-      login(res?.data?.user, res?.data?.token);
-      alert("Đăng nhập thành công!");
-      navigate("/");
+      login(res.user, res.token);
+      navigate("/chat");
     } catch (err) {
       alert(err.response?.data?.error || "Đăng nhập thất bại!");
     } finally {
@@ -30,12 +31,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md p-6 bg-white shadow-lg rounded-2xl"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">Đăng nhập</h2>
+    <AuthLayout title="Chào mừng quay lại 👋">
+      <form onSubmit={handleSubmit}>
         <InputField
           label="Email"
           name="email"
@@ -52,15 +49,16 @@ const Login = () => {
           onChange={handleChange}
           placeholder="Nhập mật khẩu..."
         />
-        <Button text="Đăng nhập" type="submit" loading={loading} />
-        <p className="text-sm mt-3 text-center">
+        <PrimaryButton text="Đăng nhập" loading={loading} />
+
+        <p className="text-center text-sm mt-4 text-gray-500">
           Chưa có tài khoản?{" "}
-          <Link to="/register" className="text-blue-500 hover:underline">
+          <Link to="/register" className="text-blue-600 hover:underline">
             Đăng ký ngay
           </Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 };
 

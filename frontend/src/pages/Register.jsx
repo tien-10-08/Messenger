@@ -1,8 +1,10 @@
+// src/pages/Register.jsx
 import { useState } from "react";
 import { registerUser } from "../api/authService";
+import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
 import InputField from "../components/InputField";
-import Button from "../components/Button";
-import { useNavigate, Link } from "react-router-dom";
+import PrimaryButton from "../components/PrimaryButton";
 
 const Register = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
@@ -27,18 +29,14 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md p-6 bg-white shadow-lg rounded-2xl"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">Đăng ký tài khoản</h2>
+    <AuthLayout title="Tạo tài khoản mới ✨">
+      <form onSubmit={handleSubmit}>
         <InputField
           label="Tên người dùng"
           name="username"
           value={form.username}
           onChange={handleChange}
-          placeholder="Nhập tên..."
+          placeholder="Nhập tên của bạn..."
         />
         <InputField
           label="Email"
@@ -56,15 +54,16 @@ const Register = () => {
           onChange={handleChange}
           placeholder="Nhập mật khẩu..."
         />
-        <Button text="Đăng ký" type="submit" loading={loading} />
-        <p className="text-sm mt-3 text-center">
+        <PrimaryButton text="Đăng ký" loading={loading} />
+
+        <p className="text-center text-sm mt-4 text-gray-500">
           Đã có tài khoản?{" "}
-          <Link to="/login" className="text-blue-500 hover:underline">
+          <Link to="/login" className="text-blue-600 hover:underline">
             Đăng nhập
           </Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 };
 
