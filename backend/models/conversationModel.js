@@ -1,8 +1,19 @@
-// conversationModel.js
 import mongoose from "mongoose";
 
-const conversationSchema = new mongoose.Schema({
-  members: { type: Array },
-}, { timestamps: true });
+const conversationSchema = new mongoose.Schema(
+  {
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    lastMessage: {
+      type: String,
+      default: "",
+    },
+  },
+  { timestamps: true }
+);
 
 export default mongoose.model("Conversation", conversationSchema);
