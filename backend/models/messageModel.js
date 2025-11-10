@@ -12,14 +12,19 @@ const messageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    text: {
+    text: { type: String, trim: true },
+    type: {
       type: String,
-      trim: true,
+      enum: ["text", "image", "voice"],
+      default: "text",
     },
-    isSeen: {
-      type: Boolean,
-      default: false,
-    },
+    mediaUrl: { type: String }, 
+    isSeenBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
