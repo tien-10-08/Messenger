@@ -22,6 +22,7 @@ export const getProfile = async (userId) => {
 };
 
 export const updateProfile = async (_userIdIgnored, data) => {
-  const res = await API.patch(`/profile/update`, data);
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const res = await API.patch(`/profile/update`, data, isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined);
   return res.data.data;
 };

@@ -31,11 +31,14 @@ const ChatWindow = () => {
   // Lấy thông tin người chat còn lại
   useEffect(() => {
     if (!currentChat?.members || !user?._id) return;
-    const otherId = currentChat.members.find(m => (typeof m === "string" ? m !== user._id : m._id !== user._id));
+    const otherId = currentChat.members.find(m => {
+      const mid = typeof m === "string" ? m : (m?._id || m?.id || m);
+      return String(mid) !== String(user._id);
+    });
     if (!otherId) return;
 
     if (typeof otherId === "object") setOtherUser(otherId);
-    else getUserProfile(otherId).then(res => setOtherUser(res.data)).catch(console.error);
+    else getUserProfile(otherId).then(userObj => setOtherUser(userObj)).catch(console.error);
   }, [currentChat, user]);
 
   // Lắng nghe typing của đối phương

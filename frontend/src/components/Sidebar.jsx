@@ -8,7 +8,7 @@ import { formatTime } from "../utils/formatTime";
 import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { currentChat, setCurrentChat, conversations, setConversations } = useChat();
   const { users, loading: searching, fetchUsers, setUsers } = useUsers();
   const navigate = useNavigate();
@@ -75,16 +75,27 @@ const Sidebar = () => {
       )}
 
       <div className="flex-1 overflow-y-auto space-y-2 mt-2">
-        {conversations.length > 0 ? conversations.map(c => (
-          <button key={c._id} onClick={() => setCurrentChat(c)} className={`w-full text-left px-3 py-2 rounded-lg flex flex-col transition ${currentChat?._id === c._id ? "bg-blue-600" : "hover:bg-gray-800"}`}>
-            <div className="flex justify-between items-center">
-              <span className="truncate font-medium">{getConversationTitle(c, user._id)}</span>
-              {c.updatedAt && <span className="text-xs text-gray-400 ml-2">{formatTime(c.updatedAt)}</span>}
-            </div>
-            {c.lastMessage && <p className="text-xs text-gray-400 truncate mt-1">{c.lastMessage}</p>}
-          </button>
-        )) : <p className="text-gray-400 italic text-sm mt-2">Chưa có cuộc trò chuyện nào.</p>}
+        {conversations.length > 0 ? conversations.map(c => {
+          const members = Array.isArray(c.members) ? c.members : [];
+          const other = members.find(m => String(m?._id || m) !== String(user._id));
+          const otherAvatar = other?.avatar || "/default-avatar.png";
+          const title = getConversationTitle(c, user._id);
+          return (
+            <button key={c._id} onClick={() => setCurrentChat(c)} className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-3 transition ${currentChat?._id === c._id ? "bg-blue-600" : "hover:bg-gray-800"}`}>
+              <img src={otherAvatar} alt="avatar" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-center">
+                  <span className="truncate font-medium">{title}</span>
+                  {c.updatedAt && <span className="text-xs text-gray-400 ml-2">{formatTime(c.updatedAt)}</span>}
+                </div>
+                {c.lastMessage && <p className="text-xs text-gray-200/80 truncate mt-1">{c.lastMessage}</p>}
+              </div>
+            </button>
+          );
+        }) : <p className="text-gray-400 italic text-sm mt-2">Chưa có cuộc trò chuyện nào.</p>}
       </div>
+
+      <button onClick={logout} className="mt-4 px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-sm">Đăng xuất</button>
     </div>
   );
 };

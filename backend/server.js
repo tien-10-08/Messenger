@@ -4,6 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import http from "http";
 import { Server } from "socket.io";
+import { setIO } from "./services/socketService.js";
 
 import connectDB from "./config/db.js";
 import { initSocket } from "./socket/socket.js";
@@ -25,6 +26,7 @@ const io = new Server(server, {
   },
 });
 initSocket(io);
+setIO(io);
 
 app.use(cors());
 app.use(express.json());

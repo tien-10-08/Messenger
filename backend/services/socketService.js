@@ -2,6 +2,10 @@ import Message from "../models/messageModel.js";
 import Conversation from "../models/conversationModel.js";
 
 let users = [];
+let ioRef = null;
+
+export const setIO = (io) => { ioRef = io; };
+export const getIO = () => ioRef;
 
 export const addUser = (userId, socketId) => {
   if (!users.some((u) => u.userId === userId)) users.push({ userId, socketId });

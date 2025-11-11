@@ -7,7 +7,7 @@ const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
   const { user } = useAuth();
-  const { currentChat, receiveMessage, setMessages, setPagination, setConversations } = useChat();
+  const { receiveMessage, setMessages, setPagination, setConversations } = useChat();
   const socket = useRef(null);
 
   // Refs để luôn trỏ tới handler mới nhất mà không cần re-subscribe socket
@@ -47,15 +47,33 @@ export const SocketProvider = ({ children }) => {
         return [{ _id: conversationId, lastMessage, updatedAt }, ...prev];
       });
     };
+    const onUserUpdated = ({ user: updatedUser }) => {
+      if (!updatedUser?._id) return;
+      console.debug("[socket] userUpdated", updatedUser._id);
+      setConversationsRef.current(prev => prev.map(c => {
+        if (!Array.isArray(c.members)) return c;
+        const members = c.members.map(m => {
+          const id = String(m?._id || m);
+          if (id === String(updatedUser._id)) {
+            if (typeof m === 'object') return { ...m, username: updatedUser.username, avatar: updatedUser.avatar, status: updatedUser.status };
+            return updatedUser; // fallback
+          }
+          return m;
+        });
+        return { ...c, members };
+      }));
+    };
 
     socket.current.on("getMessage", onGetMessage);
     socket.current.on("conversationHistory", onConversationHistory);
     socket.current.on("conversationUpdated", onConversationUpdated);
+    socket.current.on("userUpdated", onUserUpdated);
 
     return () => {
       socket.current?.off("getMessage", onGetMessage);
       socket.current?.off("conversationHistory", onConversationHistory);
       socket.current?.off("conversationUpdated", onConversationUpdated);
+      socket.current?.off("userUpdated", onUserUpdated);
       socket.current?.disconnect();
     };
   }, [user?._id]);

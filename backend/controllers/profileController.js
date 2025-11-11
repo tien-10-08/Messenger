@@ -2,6 +2,8 @@
 import * as profileService from "../services/profileService.js";
 import cloudinary from "../utils/cloudinary.js";
 import fs from "fs";
+import * as socketService from "../services/socketService.js";
+import Conversation from "../models/conversationModel.js";
 
 /** 🧾 Xem profile của chính mình */
 export const getMyProfile = async (req, res) => {
@@ -53,6 +55,19 @@ export const updateMyProfile = async (req, res) => {
 
     const user = await profileService.updateProfile(userId, updates);
     res.status(200).json({ message: "Cập nhật thành công", data: user });
+
+    const io = socketService.getIO();
+    if (io) {
+      const me = socketService.getUser(userId);
+      if (me?.socketId) io.to(me.socketId).emit("userUpdated", { user });
+      const convos = await Conversation.find({ members: userId }).select("members");
+      const partnerIds = new Set();
+      convos.forEach(c => (c.members || []).forEach(m => String(m) !== String(userId) && partnerIds.add(String(m))));
+      partnerIds.forEach(pid => {
+        const u = socketService.getUser(pid);
+        if (u?.socketId) io.to(u.socketId).emit("userUpdated", { user });
+      });
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
