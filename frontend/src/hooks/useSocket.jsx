@@ -5,7 +5,7 @@ export const useSocket = (userId, onMessage) => {
   const socket = useRef();
 
   useEffect(() => {
-    socket.current = io("http://localhost:5000");
+    socket.current = io("http://localhost:8080");
     socket.current.emit("addUser", userId);
 
     socket.current.on("getMessage", (msg) => {
