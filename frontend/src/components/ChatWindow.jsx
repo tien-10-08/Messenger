@@ -1,45 +1,43 @@
+// src/components/ChatWindow.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useChat } from "../context/ChatContext";
 import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
 import { formatTime } from "../utils/formatTime";
 import ChatHeader from "./ChatHeader";
 import ProfilePanel from "./ProfilePanel";
-import ChatInput from "./ChatInput";
 import { getMessagesByConversation } from "../api/messageApi";
 import { getUserProfile } from "../api/userApi";
 
 const ChatWindow = () => {
   const { user } = useAuth();
-  const { currentChat, messages, setMessages } = useChat();
+  const { currentChat, messages, setMessages, receiveMessage } = useChat();
+  const { socket, sendMessage } = useSocket();
+
   const [showProfile, setShowProfile] = useState(false);
   const [otherUser, setOtherUser] = useState(null);
-  const bottomRef = useRef();
   const [profileUser, setProfileUser] = useState(null);
+  const bottomRef = useRef();
 
-  // 🔹 Lấy danh sách tin nhắn khi currentChat thay đổi
+  // Lấy lịch sử tin nhắn khi currentChat thay đổi
   useEffect(() => {
     const fetchMessages = async () => {
       if (!currentChat?._id) {
         setMessages([]);
         return;
       }
-
       try {
         const { items } = await getMessagesByConversation(currentChat._id);
         setMessages(items);
       } catch (err) {
-        console.error(
-          "❌ Lỗi tải tin nhắn:",
-          err.response?.data || err.message
-        );
+        console.error("❌ Lỗi tải tin nhắn:", err.response?.data || err.message);
         setMessages([]);
       }
     };
-
     fetchMessages();
   }, [currentChat]);
 
-  // 🔹 Xác định và load thông tin người còn lại
+  // Lấy thông tin người chat còn lại
   useEffect(() => {
     const fetchOtherUser = async () => {
       if (!currentChat?.members || !user?._id) return;
@@ -55,32 +53,31 @@ const ChatWindow = () => {
           const res = await getUserProfile(otherId);
           setOtherUser(res.data);
         } catch (err) {
-          console.error(
-            "❌ Lỗi load otherUser:",
-            err.response?.data || err.message
-          );
+          console.error("❌ Lỗi load otherUser:", err.response?.data || err.message);
         }
       }
     };
-
     fetchOtherUser();
   }, [currentChat, user]);
 
+  // Lắng nghe tin nhắn realtime
   useEffect(() => {
-    const handleOpenProfile = (e) => {
-      setShowProfile(true);
-      setProfileUser(e.detail); // new state
+    if (!socket) return;
+    const handleIncoming = (msg) => {
+      if (msg.conversationId === currentChat?._id) {
+        receiveMessage(msg);
+      }
     };
-    window.addEventListener("openProfile", handleOpenProfile);
-    return () => window.removeEventListener("openProfile", handleOpenProfile);
-  }, []);
+    socket.on("getMessage", handleIncoming);
+    return () => socket.off("getMessage", handleIncoming);
+  }, [socket, currentChat, receiveMessage]);
 
-  // 🔹 Tự động cuộn xuống cuối khi có tin nhắn mới
+  // Scroll xuống cuối khi có tin nhắn mới
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Nếu chưa chọn cuộc trò chuyện
+  // Nếu chưa chọn chat
   if (!currentChat || !currentChat._id) {
     return (
       <div className="flex-1 bg-gray-800 flex items-center justify-center text-gray-400">
@@ -91,25 +88,23 @@ const ChatWindow = () => {
 
   return (
     <div className="flex flex-1 bg-gray-800 text-white">
-      {/* Phần khung chat chính */}
       <div
         className={`flex flex-col flex-1 transition-all duration-300 ${
           showProfile ? "w-[calc(100%-20rem)]" : "w-full"
         }`}
       >
-        {/* Header hiển thị tên + avatar */}
         <ChatHeader
           user={otherUser}
           onProfileClick={() => setShowProfile(true)}
         />
 
         <div className="flex flex-col gap-3 flex-1 overflow-y-auto p-4">
-          {Array.isArray(messages) && messages.length > 0 ? (
+          {messages.length > 0 ? (
             messages
               .filter((m) => m && (m.senderId || m.senderId?._id))
               .map((m) => (
                 <div
-                  key={m._id}
+                  key={m._id || m.createdAt}
                   className={`flex ${
                     (m.senderId?._id || m.senderId) === user._id
                       ? "justify-end"

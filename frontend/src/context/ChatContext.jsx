@@ -6,6 +6,7 @@ export const ChatProvider = ({ children }) => {
   const [currentChat, setCurrentChat] = useState(null); // object conversation
   const [messages, setMessages] = useState([]);         // array message
   const [pagination, setPagination] = useState(null);   // lưu phân trang tin nhắn
+  const addMessage = (msg) => setMessages(prev => [...prev, msg]);
 
   return (
     <ChatContext.Provider
@@ -16,6 +17,7 @@ export const ChatProvider = ({ children }) => {
         setMessages,
         pagination,
         setPagination,
+        addMessage,
       }}
     >
       {children}

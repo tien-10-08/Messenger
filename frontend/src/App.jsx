@@ -7,34 +7,37 @@ import { ChatProvider } from "./context/ChatContext";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import Profile from "./pages/Profile";
 import { UserProvider } from "./context/UserContext";
+import { SocketProvider } from "./context/SocketContext";
 function App() {
   return (
     <AuthProvider>
       <UserProvider>
         <ChatProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route
-                path="/chat"
-                element={
-                  <ProtectedRoute>
-                    <ChatPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </Router>
+          <SocketProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route
+                  path="/chat"
+                  element={
+                    <ProtectedRoute>
+                      <ChatPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </Router>
+          </SocketProvider>
         </ChatProvider>
       </UserProvider>
     </AuthProvider>

@@ -1,11 +1,25 @@
 import React, { useState } from "react";
+import { useChat } from "../context/ChatContext";
 
 const ChatInput = ({ onSend }) => {
   const [text, setText] = useState("");
+  const { addMessage } = useChat(); // ✅ lấy addMessage từ ChatContext
 
   const handleSend = () => {
     if (!text.trim()) return;
-    onSend?.(text.trim()); // ✅ gửi string duy nhất
+
+    // Gửi lên server
+    const msg = text.trim();
+    onSend?.(msg);
+
+    // Thêm vào message local
+    addMessage({
+      _id: Date.now().toString(), // fake id tạm thời
+      senderId: { _id: "me" }, // tạm thời, bạn có thể lấy user._id từ AuthContext
+      text: msg,
+      createdAt: new Date().toISOString(),
+    });
+
     setText("");
   };
 

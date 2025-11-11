@@ -1,8 +1,20 @@
-// services/userService.js
 import User from "../models/userModel.js";
 import mongoose from "mongoose";
 
 const SAFE_FIELDS = "_id username email avatar status createdAt";
+
+/**
+ * 🔍 Lấy thông tin user theo id
+ * @param {String} userId
+ */
+export const getUser = async (userId) => {
+  if (!userId) throw new Error("UserId is required");
+
+  const user = await User.findById(userId).select(SAFE_FIELDS);
+  if (!user) throw new Error("User not found");
+
+  return user;
+};
 
 /**
  * 🔍 Tìm kiếm user theo keyword (username hoặc email)
@@ -23,7 +35,11 @@ export const searchUsers = async ({ meId, keyword = "", page = 1, limit = 10 }) 
   const skip = (Number(page) - 1) * Number(limit);
 
   const [items, total] = await Promise.all([
-    User.find(query).select(SAFE_FIELDS).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+    User.find(query)
+      .select(SAFE_FIELDS)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit)),
     User.countDocuments(query),
   ]);
 
