@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from "react";
-import {
-  getMyConversations,
-  createOrGetConversation,
-} from "../api/conversationApi";
-import { searchUsers } from "../api/userApi";
+import { getMyConversations, createOrGetConversation } from "../api/conversationApi";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
+import { useUsers } from "../context/UserContext"; // ✅ dùng context mới
 import { getConversationTitle } from "../utils/getConversationTitle";
 import { formatTime } from "../utils/formatTime";
 
 const Sidebar = () => {
   const { user } = useAuth();
   const { currentChat, setCurrentChat } = useChat();
+  const { users, loading: searching, fetchUsers, setUsers } = useUsers();
 
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [results, setResults] = useState([]);
-  const [searching, setSearching] = useState(false);
 
   // 🧩 Lấy danh sách hội thoại
   useEffect(() => {
@@ -32,31 +28,19 @@ const Sidebar = () => {
         setLoading(false);
       }
     };
-
     fetchConvos();
   }, []);
 
-  // 🔍 Tìm user
+  // 🔍 Gọi UserContext để tìm user (debounce 400ms)
   useEffect(() => {
-    const delay = setTimeout(async () => {
-      if (search.trim()) {
-        try {
-          setSearching(true);
-          const res = await searchUsers(search);
-          const users = res.data?.data || res.data || [];
-          setResults(users);
-        } catch (err) {
-          console.error("❌ Lỗi tìm kiếm user:", err);
-        } finally {
-          setSearching(false);
-        }
-      } else {
-        setResults([]);
-      }
+    const delay = setTimeout(() => {
+      if (search.trim()) fetchUsers(search);
+      else setUsers([]); // clear kết quả khi xoá search
     }, 400);
     return () => clearTimeout(delay);
   }, [search]);
 
+  // ➕ Tạo hoặc lấy conversation
   const handleSelectUser = async (targetUser) => {
     try {
       console.log("➡️ Gửi yêu cầu tạo chat với:", targetUser.username);
@@ -68,11 +52,10 @@ const Sidebar = () => {
       if (!exists) setConversations((prev) => [convo, ...prev]);
 
       setCurrentChat(convo);
-
       setSearch("");
-      setResults([]);
+      setUsers([]);
     } catch (err) {
-      console.error("❌ Lỗi tạo hoặc lấy conversation:", err.response?.status, err.response?.data);
+      console.error("❌ Lỗi tạo hoặc lấy conversation:", err.response?.data);
     }
   };
 
@@ -88,6 +71,7 @@ const Sidebar = () => {
     <div className="w-1/4 bg-gray-900 text-white p-4 flex flex-col border-r border-gray-800">
       <h2 className="text-xl font-bold mb-3">Danh sách chat</h2>
 
+      {/* Ô search */}
       <div className="mb-3">
         <input
           type="text"
@@ -103,14 +87,14 @@ const Sidebar = () => {
               <div className="p-2 text-sm text-gray-400">Đang tìm kiếm...</div>
             )}
 
-            {!searching && results.length === 0 && (
+            {!searching && users.length === 0 && (
               <div className="p-2 text-sm text-gray-400">
                 Không tìm thấy ai.
               </div>
             )}
 
             {!searching &&
-              results.map((u) => (
+              users.map((u) => (
                 <div
                   key={u._id}
                   onClick={() => handleSelectUser(u)}
@@ -130,39 +114,37 @@ const Sidebar = () => {
         )}
       </div>
 
+      {/* Danh sách hội thoại */}
       {Array.isArray(conversations) && conversations.length > 0 ? (
         <div className="flex-1 overflow-y-auto space-y-2">
-          {conversations.map((c) => {
-            const other = c.members?.find((m) => m._id !== user._id);
-            return (
-              <button
-                key={c._id}
-                onClick={() => setCurrentChat(c)}
-                className={`w-full text-left px-3 py-2 rounded-lg flex flex-col transition ${
-                  currentChat?._id === c._id
-                    ? "bg-blue-600"
-                    : "hover:bg-gray-800"
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="truncate font-medium">
-                    {getConversationTitle(c, user._id)}
+          {conversations.map((c) => (
+            <button
+              key={c._id}
+              onClick={() => setCurrentChat(c)}
+              className={`w-full text-left px-3 py-2 rounded-lg flex flex-col transition ${
+                currentChat?._id === c._id
+                  ? "bg-blue-600"
+                  : "hover:bg-gray-800"
+              }`}
+            >
+              <div className="flex justify-between items-center">
+                <span className="truncate font-medium">
+                  {getConversationTitle(c, user._id)}
+                </span>
+                {c.updatedAt && (
+                  <span className="text-xs text-gray-400 ml-2">
+                    {formatTime(c.updatedAt)}
                   </span>
-                  {c.updatedAt && (
-                    <span className="text-xs text-gray-400 ml-2">
-                      {formatTime(c.updatedAt)}
-                    </span>
-                  )}
-                </div>
-
-                {c.lastMessage && (
-                  <p className="text-xs text-gray-400 truncate mt-1">
-                    {c.lastMessage}
-                  </p>
                 )}
-              </button>
-            );
-          })}
+              </div>
+
+              {c.lastMessage && (
+                <p className="text-xs text-gray-400 truncate mt-1">
+                  {c.lastMessage}
+                </p>
+              )}
+            </button>
+          ))}
         </div>
       ) : (
         <p className="text-gray-400 italic text-sm mt-2">
