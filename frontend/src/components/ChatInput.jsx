@@ -9,7 +9,11 @@ const ChatInput = ({ onSend }) => {
   const { user } = useAuth();
 
   const handleSend = async () => {
-    if (!text.trim() || !currentChat) return;
+    if (!text.trim()) return;
+    if (!currentChat?._id || !user?._id) {
+      console.warn("⚠️ Thiếu conversationId hoặc senderId", currentChat, user);
+      return;
+    }
 
     const payload = {
       conversationId: currentChat._id,
@@ -19,7 +23,7 @@ const ChatInput = ({ onSend }) => {
 
     try {
       const res = await sendMessage(payload);
-      onSend(res.data); // cập nhật tin nhắn mới lên UI
+      onSend && onSend(res.data);
       setText("");
     } catch (err) {
       console.error("❌ Lỗi gửi tin nhắn:", err.response?.data || err.message);
@@ -27,7 +31,7 @@ const ChatInput = ({ onSend }) => {
   };
 
   return (
-    <div className="bg-gray-900 p-3 flex gap-2 border-t border-gray-800">
+    <div className="bg-gray-900 p-3 flex gap-2">
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}

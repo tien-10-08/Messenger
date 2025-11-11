@@ -1,4 +1,3 @@
-// src/api/conversationApi.js
 import axios from "axios";
 
 const API = axios.create({
@@ -11,9 +10,13 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// 📋 Lấy danh sách hội thoại
-export const getMyConversations = () => API.get("/conversations");
+export const getMyConversations = async () => {
+  const res = await API.get("/conversations");
+  return res.data.data || []; 
+};
 
-// 💬 Tạo hoặc lấy cuộc trò chuyện (backend cần partnerId)
-export const createOrGetConversation = (partnerId) =>
-  API.post("/conversations", { partnerId });
+// 💬 Tạo hoặc lấy cuộc trò chuyện giữa 2 người
+export const createOrGetConversation = async (partnerId) => {
+  const res = await API.post("/conversations", { partnerId });
+  return res.data.data || res.data; 
+};

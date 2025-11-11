@@ -17,19 +17,20 @@ const Sidebar = () => {
 
   // 🧩 Lấy danh sách hội thoại
   useEffect(() => {
-    const fetchConvos = async () => {
-      try {
-        const res = await getMyConversations();
-        const data = Array.isArray(res.data) ? res.data : res.data?.items || [];
-        setConversations(data);
-      } catch (err) {
-        console.error("❌ Lỗi lấy conversations:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchConvos();
-  }, []);
+  const fetchConvos = async () => {
+    try {
+      const data = await getMyConversations(); 
+      setConversations(data);
+    } catch (err) {
+      console.error("❌ Lỗi lấy conversations:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchConvos();
+}, []);
+
 
   // 🔍 Gọi UserContext để tìm user (debounce 400ms)
   useEffect(() => {
@@ -43,10 +44,8 @@ const Sidebar = () => {
   // ➕ Tạo hoặc lấy conversation
   const handleSelectUser = async (targetUser) => {
     try {
-      console.log("➡️ Gửi yêu cầu tạo chat với:", targetUser.username);
       const res = await createOrGetConversation(targetUser._id);
-      const convo = res.data;
-      console.log("✅ Nhận conversation:", convo);
+      const convo = res.data?.data || res.data;
 
       const exists = conversations.some((c) => c._id === convo._id);
       if (!exists) setConversations((prev) => [convo, ...prev]);

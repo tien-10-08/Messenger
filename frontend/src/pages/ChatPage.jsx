@@ -5,7 +5,10 @@ import ChatWindow from "../components/ChatWindow";
 import ChatInput from "../components/ChatInput";
 import { useChat } from "../context/ChatContext";
 import { useAuth } from "../context/AuthContext";
-import { getMessagesByConversation, sendMessage as apiSendMessage } from "../api/messageApi";
+import {
+  getMessagesByConversation,
+  sendMessage as apiSendMessage,
+} from "../api/messageApi";
 import { useSocket } from "../hooks/useSocket";
 
 const ChatPage = () => {
@@ -26,6 +29,8 @@ const ChatPage = () => {
       try {
         const res = await getMessagesByConversation(currentChat._id);
         setMessages(res.data?.items || res.data || []);
+        const data = res.data?.items || res.data || [];
+        setMessages(Array.isArray(data) ? data : []); // đảm bảo mảng
       } catch (err) {
         console.error("❌ Lỗi tải tin nhắn:", err.response?.data);
       }
@@ -33,7 +38,6 @@ const ChatPage = () => {
     fetchMessages();
   }, [currentChat, setMessages]);
 
-  // 📨 Gửi tin nhắn
   const handleSend = async (msgText) => {
     if (!msgText.trim() || !currentChat?._id) return;
 
@@ -44,11 +48,9 @@ const ChatPage = () => {
     };
 
     try {
-      // Gửi tin nhắn tới backend (lưu vào DB)
       const res = await apiSendMessage(newMsg);
       const savedMsg = res.data;
 
-      // Cập nhật tin nhắn mới lên UI
       setMessages((prev) => [...prev, savedMsg]);
 
       // Gửi qua socket cho người nhận

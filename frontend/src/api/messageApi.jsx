@@ -1,4 +1,3 @@
-// src/api/messageApi.js
 import axios from "axios";
 
 const API = axios.create({
@@ -12,21 +11,21 @@ API.interceptors.request.use((config) => {
 });
 
 /**
- * 💬 Lấy tin nhắn theo conversationId (backend: GET /api/messages/:id)
- * Có hỗ trợ phân trang (page, limit)
+ * 💬 Lấy danh sách tin nhắn theo conversationId
+ * Backend trả { data: [...], pagination: {...} }
  */
-export const getMessagesByConversation = (conversationId, page = 1, limit = 20) => {
-  if (!conversationId) throw new Error("Thiếu conversationId");
-  return API.get(`/messages/${conversationId}?page=${page}&limit=${limit}`);
+export const getMessagesByConversation = async (conversationId, page = 1, limit = 20) => {
+  const res = await API.get(`/messages/${conversationId}?page=${page}&limit=${limit}`);
+  return {
+    items: res.data.data || [],
+    pagination: res.data.pagination || null,
+  };
 };
 
 /**
- * 📨 Gửi tin nhắn mới (backend: POST /api/messages)
- * body cần { conversationId, senderId, text }
+ * 📨 Gửi tin nhắn mới
  */
-export const sendMessage = (data) => {
-  if (!data?.conversationId || !data?.senderId) {
-    throw new Error("Thiếu conversationId hoặc senderId");
-  }
-  return API.post("/messages", data);
+export const sendMessage = async (payload) => {
+  const res = await API.post("/messages", payload);
+  return res.data.data || res.data || {};
 };

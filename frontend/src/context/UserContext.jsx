@@ -9,10 +9,15 @@ export const UserProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [cache, setCache] = useState({}); // Lưu kết quả search để tránh gọi lại API nhiều lần
+  const [cache, setCache] = useState({}); 
 
   const fetchUsers = async (keyword = "") => {
-    if (!keyword.trim()) return setUsers([]);
+    if (!keyword.trim()) {
+      setUsers([]);
+      return;
+    }
+
+    // 🔹 Kiểm tra cache
     if (cache[keyword]) {
       setUsers(cache[keyword]);
       return;
@@ -20,12 +25,13 @@ export const UserProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const res = await searchUsers(keyword);
-      const data = res.data?.items || res.data?.data || [];
-      setUsers(data);
+      const data = await searchUsers(keyword); 
+      setUsers(Array.isArray(data) ? data : []);
       setCache((prev) => ({ ...prev, [keyword]: data }));
     } catch (err) {
+      console.error("❌ Lỗi fetchUsers:", err);
       setError(err.response?.data?.error || "Lỗi tải danh sách user");
+      setUsers([]);
     } finally {
       setLoading(false);
     }

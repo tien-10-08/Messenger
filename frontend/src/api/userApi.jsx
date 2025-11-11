@@ -11,7 +11,14 @@ API.interceptors.request.use((config) => {
 });
 
 /**
- * 🔍 Tìm user theo keyword (username/email)
+ * 🔍 Tìm user theo từ khóa (backend trả { data: [...], pagination })
  */
-export const searchUsers = (keyword = "", page = 1, limit = 10) =>
-  API.get(`/users?keyword=${encodeURIComponent(keyword)}&page=${page}&limit=${limit}`);
+export const searchUsers = async (keyword) => {
+  const res = await API.get(`/users?q=${encodeURIComponent(keyword)}`);
+  return res.data.data || []; 
+};
+
+export const getUserProfile = async (userId) => {
+  const res = await API.get(`/users/${userId}`);
+  return res.data.data || {};
+};
