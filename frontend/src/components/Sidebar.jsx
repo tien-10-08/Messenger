@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getMyConversations, createOrGetConversation } from "../api/conversationApi";
+import {
+  getMyConversations,
+  createOrGetConversation,
+} from "../api/conversationApi";
 import { searchUsers } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
@@ -21,15 +24,10 @@ const Sidebar = () => {
     const fetchConvos = async () => {
       try {
         const res = await getMyConversations();
-
-        // backend trả { items, pagination } hoặc array
-        const data = Array.isArray(res.data)
-          ? res.data
-          : res.data?.items || [];
-
+        const data = Array.isArray(res.data) ? res.data : res.data?.items || [];
         setConversations(data);
       } catch (err) {
-        console.error("Lỗi lấy conversations:", err);
+        console.error("❌ Lỗi lấy conversations:", err);
       } finally {
         setLoading(false);
       }
@@ -48,7 +46,7 @@ const Sidebar = () => {
           const users = res.data?.data || res.data || [];
           setResults(users);
         } catch (err) {
-          console.error("Lỗi tìm kiếm user:", err);
+          console.error("❌ Lỗi tìm kiếm user:", err);
         } finally {
           setSearching(false);
         }
@@ -59,27 +57,25 @@ const Sidebar = () => {
     return () => clearTimeout(delay);
   }, [search]);
 
-  // ➕ Tạo hoặc mở conversation khi chọn user
   const handleSelectUser = async (targetUser) => {
     try {
-      const res = await createOrGetConversation({
-        userA: user._id,
-        userB: targetUser._id,
-      });
-
+      console.log("➡️ Gửi yêu cầu tạo chat với:", targetUser.username);
+      const res = await createOrGetConversation(targetUser._id);
       const convo = res.data;
+      console.log("✅ Nhận conversation:", convo);
+
       const exists = conversations.some((c) => c._id === convo._id);
       if (!exists) setConversations((prev) => [convo, ...prev]);
 
       setCurrentChat(convo);
+
       setSearch("");
       setResults([]);
     } catch (err) {
-      console.error("Lỗi tạo hoặc lấy conversation:", err);
+      console.error("❌ Lỗi tạo hoặc lấy conversation:", err.response?.status, err.response?.data);
     }
   };
 
-  // ⏳ Loading
   if (loading) {
     return (
       <div className="w-1/4 bg-gray-900 text-white flex items-center justify-center">
@@ -88,12 +84,10 @@ const Sidebar = () => {
     );
   }
 
-  // 🧱 Giao diện sidebar
   return (
     <div className="w-1/4 bg-gray-900 text-white p-4 flex flex-col border-r border-gray-800">
       <h2 className="text-xl font-bold mb-3">Danh sách chat</h2>
 
-      {/* Tìm người */}
       <div className="mb-3">
         <input
           type="text"
@@ -104,22 +98,31 @@ const Sidebar = () => {
         />
 
         {search.trim() && (
-          <div className="bg-gray-800 mt-2 rounded-lg max-h-48 overflow-y-auto">
+          <div className="bg-gray-800 mt-2 rounded-lg max-h-48 overflow-y-auto shadow-lg border border-gray-700">
             {searching && (
               <div className="p-2 text-sm text-gray-400">Đang tìm kiếm...</div>
             )}
+
             {!searching && results.length === 0 && (
-              <div className="p-2 text-sm text-gray-400">Không tìm thấy ai.</div>
+              <div className="p-2 text-sm text-gray-400">
+                Không tìm thấy ai.
+              </div>
             )}
+
             {!searching &&
               results.map((u) => (
                 <div
                   key={u._id}
                   onClick={() => handleSelectUser(u)}
-                  className="p-2 hover:bg-gray-700 cursor-pointer rounded"
+                  className="flex items-center gap-3 p-2 hover:bg-gray-700 cursor-pointer rounded transition"
                 >
-                  <div className="flex flex-col">
-                    <span className="font-semibold">{u.username}</span>
+                  <img
+                    src={u.avatar || "/default-avatar.png"}
+                    alt=""
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <div>
+                    <p className="font-semibold">{u.username}</p>
                   </div>
                 </div>
               ))}
@@ -127,44 +130,45 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* Danh sách hội thoại */}
       {Array.isArray(conversations) && conversations.length > 0 ? (
-        <div className="flex-1 overflow-y-auto">
-          {conversations.map((c) => (
-            <button
-              key={c._id}
-              onClick={() => setCurrentChat(c)}
-              className={`w-full text-left px-3 py-2 rounded-lg mb-2 transition ${
-                currentChat?._id === c._id
-                  ? "bg-blue-600"
-                  : "hover:bg-gray-800"
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <span className="truncate">
-                  {getConversationTitle(c, user._id)}
-                </span>
-                {c.updatedAt && (
-                  <span className="text-xs text-gray-400 ml-2">
-                    {formatTime(c.updatedAt)}
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {conversations.map((c) => {
+            const other = c.members?.find((m) => m._id !== user._id);
+            return (
+              <button
+                key={c._id}
+                onClick={() => setCurrentChat(c)}
+                className={`w-full text-left px-3 py-2 rounded-lg flex flex-col transition ${
+                  currentChat?._id === c._id
+                    ? "bg-blue-600"
+                    : "hover:bg-gray-800"
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="truncate font-medium">
+                    {getConversationTitle(c, user._id)}
                   </span>
-                )}
-              </div>
+                  {c.updatedAt && (
+                    <span className="text-xs text-gray-400 ml-2">
+                      {formatTime(c.updatedAt)}
+                    </span>
+                  )}
+                </div>
 
-              {c.lastMessage && (
-                <p className="text-xs text-gray-400 truncate mt-1">
-                  {c.lastMessage}
-                </p>
-              )}
-            </button>
-          ))}
+                {c.lastMessage && (
+                  <p className="text-xs text-gray-400 truncate mt-1">
+                    {c.lastMessage}
+                  </p>
+                )}
+              </button>
+            );
+          })}
         </div>
       ) : (
-        <p className="text-gray-400 italic text-sm">
+        <p className="text-gray-400 italic text-sm mt-2">
           Chưa có cuộc trò chuyện nào. Hãy tìm người để bắt đầu.
         </p>
       )}
-      
     </div>
   );
 };

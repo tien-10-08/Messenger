@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { createMessage } from "../api/messageApi";
+import { sendMessage } from "../api/messageApi";
 import { useChat } from "../context/ChatContext";
 import { useAuth } from "../context/AuthContext";
 
@@ -10,18 +10,24 @@ const ChatInput = ({ onSend }) => {
 
   const handleSend = async () => {
     if (!text.trim() || !currentChat) return;
+
     const payload = {
       conversationId: currentChat._id,
       senderId: user._id,
       text,
     };
-    const res = await createMessage(payload);
-    onSend(res.data.items || res.data); // add message to UI
-    setText("");
+
+    try {
+      const res = await sendMessage(payload);
+      onSend(res.data); // cập nhật tin nhắn mới lên UI
+      setText("");
+    } catch (err) {
+      console.error("❌ Lỗi gửi tin nhắn:", err.response?.data || err.message);
+    }
   };
 
   return (
-    <div className="bg-gray-900 p-3 flex gap-2">
+    <div className="bg-gray-900 p-3 flex gap-2 border-t border-gray-800">
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
