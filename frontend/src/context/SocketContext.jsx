@@ -10,24 +10,38 @@ export const SocketProvider = ({ children }) => {
   const { currentChat, receiveMessage, setMessages, setPagination, setConversations } = useChat();
   const socket = useRef(null);
 
+  // Refs để luôn trỏ tới handler mới nhất mà không cần re-subscribe socket
+  const receiveMessageRef = useRef(receiveMessage);
+  const setMessagesRef = useRef(setMessages);
+  const setPaginationRef = useRef(setPagination);
+  const setConversationsRef = useRef(setConversations);
+
+  useEffect(() => { receiveMessageRef.current = receiveMessage; }, [receiveMessage]);
+  useEffect(() => { setMessagesRef.current = setMessages; }, [setMessages]);
+  useEffect(() => { setPaginationRef.current = setPagination; }, [setPagination]);
+  useEffect(() => { setConversationsRef.current = setConversations; }, [setConversations]);
+
   useEffect(() => {
     if (!user?._id) return;
-    socket.current = io("http://localhost:8080"); // server của bạn
+    socket.current = io("http://localhost:8080");
     socket.current.emit("addUser", user._id);
 
     const onGetMessage = (msg) => {
-      // Chỉ cập nhật khung chat hiện tại; Sidebar sẽ cập nhật qua ChatContext
-      receiveMessage(msg);
+      console.debug("[socket] getMessage", msg);
+      receiveMessageRef.current(msg);
     };
     const onConversationHistory = ({ items, pagination }) => {
-      setMessages(Array.isArray(items) ? items : []);
-      setPagination(pagination || null);
+      console.debug("[socket] conversationHistory", { count: items?.length, pagination });
+      setMessagesRef.current(Array.isArray(items) ? items : []);
+      setPaginationRef.current(pagination || null);
     };
     const onConversationUpdated = ({ conversationId, lastMessage, updatedAt }) => {
-      setConversations(prev => {
+      console.debug("[socket] conversationUpdated", { conversationId, lastMessage });
+      setConversationsRef.current(prev => {
         const exists = prev.some(c => c._id === conversationId);
         if (exists) {
-          return prev.map(c => c._id === conversationId ? { ...c, lastMessage, updatedAt } : c)
+          return prev
+            .map(c => c._id === conversationId ? { ...c, lastMessage, updatedAt } : c)
             .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
         }
         return [{ _id: conversationId, lastMessage, updatedAt }, ...prev];
@@ -44,7 +58,7 @@ export const SocketProvider = ({ children }) => {
       socket.current?.off("conversationUpdated", onConversationUpdated);
       socket.current?.disconnect();
     };
-  }, [user, receiveMessage, setMessages, setPagination, setConversations]);
+  }, [user?._id]);
 
   const sendMessage = (msg) => {
     socket.current?.emit("sendMessage", msg);

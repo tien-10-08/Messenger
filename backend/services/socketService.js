@@ -28,6 +28,11 @@ export const createAndSendMessage = async (io, { conversationId, senderId, recei
   // Emit theo room conversation, đảm bảo cả 2 phía (đã join) đều nhận
   io.to(conversationId).emit("getMessage", populated);
 
+  // Echo trực tiếp cho sender để tránh race-condition khi sender chưa kịp join room
+  // Phía client đã chống trùng theo _id nên nếu đã nhận qua room sẽ bỏ qua bản trùng
+  const senderSock = getUser(senderId?.toString?.() || String(senderId));
+  if (senderSock?.socketId) io.to(senderSock.socketId).emit("getMessage", populated);
+
   // Emit cập nhật preview cho Sidebar tới tất cả members (kể cả chưa join room)
   const updatedPayload = { conversationId, lastMessage: text, updatedAt: populated.createdAt };
   const memberIds = (convo.members || []).map(m => m.toString());
