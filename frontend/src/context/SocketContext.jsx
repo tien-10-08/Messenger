@@ -64,16 +64,46 @@ export const SocketProvider = ({ children }) => {
       }));
     };
 
+    const onConversationCreated = ({ conversation }) => {
+      if (!conversation?._id) return;
+      console.debug("[socket] conversationCreated", conversation._id);
+      setConversationsRef.current(prev => {
+        const exists = prev.some(c => c._id === conversation._id);
+        if (exists) return prev;
+        return [conversation, ...prev];
+      });
+    };
+
+    const onPresenceUpdated = ({ userId, online }) => {
+      if (!userId) return;
+      console.debug("[socket] presenceUpdated", userId, online);
+      setConversationsRef.current(prev => prev.map(c => {
+        if (!Array.isArray(c.members)) return c;
+        const members = c.members.map(m => {
+          const id = String(m?._id || m);
+          if (id === String(userId)) {
+            if (typeof m === 'object') return { ...m, status: online ? 'Đang hoạt động' : (m.status || '') };
+          }
+          return m;
+        });
+        return { ...c, members };
+      }));
+    };
+
     socket.current.on("getMessage", onGetMessage);
     socket.current.on("conversationHistory", onConversationHistory);
     socket.current.on("conversationUpdated", onConversationUpdated);
     socket.current.on("userUpdated", onUserUpdated);
+    socket.current.on("conversationCreated", onConversationCreated);
+    socket.current.on("presenceUpdated", onPresenceUpdated);
 
     return () => {
       socket.current?.off("getMessage", onGetMessage);
       socket.current?.off("conversationHistory", onConversationHistory);
       socket.current?.off("conversationUpdated", onConversationUpdated);
       socket.current?.off("userUpdated", onUserUpdated);
+      socket.current?.off("conversationCreated", onConversationCreated);
+      socket.current?.off("presenceUpdated", onPresenceUpdated);
       socket.current?.disconnect();
     };
   }, [user?._id]);

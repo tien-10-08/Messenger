@@ -59,7 +59,7 @@ const Sidebar = () => {
 
       <img src={user.avatar || "/default-avatar.png"} alt="me" title="Xem hồ sơ" className="w-10 h-10 rounded-full cursor-pointer border-2 border-blue-500 mb-2" onClick={() => { setCurrentChat(null); navigate("/profile"); }} />
 
-      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Tìm người để nhắn..." className="w-full px-3 py-2 bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2" />
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search..." className="w-full px-3 py-2 bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2" />
 
       {search.trim() && (
         <div className="bg-gray-800 mt-2 rounded-lg max-h-48 overflow-y-auto shadow-lg border border-gray-700">

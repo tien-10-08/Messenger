@@ -65,9 +65,6 @@ const ChatWindow = () => {
     <div className="flex flex-1 bg-gray-800 text-white">
       <div className={`flex flex-col flex-1 transition-all duration-300 ${showProfile ? "w-[calc(100%-20rem)]" : "w-full"}`}>
         <ChatHeader user={otherUser} onProfileClick={() => setShowProfile(true)} />
-        {otherTyping && (
-          <div className="px-4 py-1 text-xs text-gray-300">{otherUser?.username || "Đối phương"} đang soạn...</div>
-        )}
         <div className="flex flex-col gap-3 flex-1 overflow-y-auto p-4">
           {messages.length > 0 ? (
             messages.map(m => (
@@ -83,6 +80,9 @@ const ChatWindow = () => {
           )}
           <div ref={bottomRef} />
         </div>
+        {otherTyping && (
+          <div className="px-4 py-1 text-xs text-gray-300">{otherUser?.username || "Đối phương"} đang soạn...</div>
+        )}
         <ChatInput onSend={(text) => sendMessage({ conversationId: currentChat._id, senderId: user._id, receiverId: otherUser?._id, text })} onTyping={(isTyping) => sendTyping(currentChat._id, isTyping)} />
       </div>
 

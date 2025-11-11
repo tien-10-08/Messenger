@@ -4,11 +4,13 @@ import * as messageService from "../services/messageService.js";
 export const handleUserConnect = (io, socket, userId) => {
   socketService.addUser(userId, socket.id);
   io.emit("getUsers", socketService.getAllUsers());
+  io.emit("presenceUpdated", { userId, online: true });
 };
 
 export const handleUserDisconnect = (io, socket) => {
-  socketService.removeUser(socket.id);
+  const removed = socketService.removeUser(socket.id);
   io.emit("getUsers", socketService.getAllUsers());
+  if (removed?.userId) io.emit("presenceUpdated", { userId: removed.userId, online: false });
 };
 
 export const handleSendMessage = async (io, socket, data) => {

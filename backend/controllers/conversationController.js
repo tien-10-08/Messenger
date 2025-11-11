@@ -1,4 +1,5 @@
 import * as conversationService from "../services/conversationService.js";
+import * as socketService from "../services/socketService.js";
 
 export const myConversations = async (req, res) => {
   try {
@@ -20,6 +21,14 @@ export const createOrGet = async (req, res) => {
     );
 
     res.status(201).json({ data: convo });
+
+    const io = socketService.getIO();
+    if (io) {
+      const me = socketService.getUser(req.user.id);
+      const partner = socketService.getUser(partnerId);
+      if (me?.socketId) io.to(me.socketId).emit("conversationCreated", { conversation: convo });
+      if (partner?.socketId) io.to(partner.socketId).emit("conversationCreated", { conversation: convo });
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
