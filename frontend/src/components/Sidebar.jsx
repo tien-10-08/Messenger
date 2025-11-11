@@ -164,6 +164,7 @@ const Sidebar = () => {
           Chưa có cuộc trò chuyện nào. Hãy tìm người để bắt đầu.
         </p>
       )}
+      
     </div>
   );
 };

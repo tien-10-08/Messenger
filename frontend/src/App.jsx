@@ -2,9 +2,10 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ChatPage from "./components/ChatPage";
+import ChatPage from "./pages/ChatPage";
 import { ChatProvider } from "./context/ChatContext";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import Profile from "./pages/Profile";
 function App() {
   return (
     <AuthProvider>
@@ -19,6 +20,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ChatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />
