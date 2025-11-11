@@ -1,14 +1,14 @@
 // routes/userRoutes.js
 import express from "express";
-import { getAllUsers, getUserById } from "../controllers/userController.js";
 import { verifyTokenMiddleware } from "../middleware/authMiddleware.js";
+import { searchUsers, getUserById } from "../controllers/userController.js";
 
 const router = express.Router();
 
-// 👥 List/Search Users (trừ chính mình)
-router.get("/", verifyTokenMiddleware, getAllUsers);
+// 🔍 Tìm kiếm user theo keyword (GET /api/users?q=abc)
+router.get("/", verifyTokenMiddleware, searchUsers);
 
-// 👤 User detail
+// 👤 Lấy thông tin 1 user cụ thể (GET /api/users/:id)
 router.get("/:id", verifyTokenMiddleware, getUserById);
 
 export default router;

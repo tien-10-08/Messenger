@@ -1,32 +1,31 @@
 import React, { useState } from "react";
+import { createMessage } from "../api/messageApi";
 import { useChat } from "../context/ChatContext";
-import { sendMessage } from "../api/messageApi";
+import { useAuth } from "../context/AuthContext";
 
 const ChatInput = ({ onSend }) => {
   const [text, setText] = useState("");
-  const { user, currentChat } = useChat();
+  const { currentChat } = useChat();
+  const { user } = useAuth();
 
   const handleSend = async () => {
-    if (!text.trim()) return;
-    const msg = {
-      conversationId: currentChat.id,
-      senderId: user.id,
+    if (!text.trim() || !currentChat) return;
+    const payload = {
+      conversationId: currentChat._id,
+      senderId: user._id,
       text,
-      createdAt: new Date().toISOString(),
     };
-    onSend(msg);
-    await sendMessage(msg);
+    const res = await createMessage(payload);
+    onSend(res.data.items || res.data); // add message to UI
     setText("");
   };
-
-  const handleKey = (e) => e.key === "Enter" && handleSend();
 
   return (
     <div className="bg-gray-900 p-3 flex gap-2">
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={handleKey}
+        onKeyDown={(e) => e.key === "Enter" && handleSend()}
         placeholder="Nhập tin nhắn..."
         className="flex-1 bg-gray-800 text-white p-2 rounded-lg focus:outline-none"
       />

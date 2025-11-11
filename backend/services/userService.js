@@ -2,38 +2,29 @@
 import User from "../models/userModel.js";
 import mongoose from "mongoose";
 
-const SAFE_PROJECTION = "_id username email avatar status createdAt updatedAt";
+const SAFE_FIELDS = "_id username email avatar status createdAt";
 
 /**
- * Lấy danh sách user (trừ bản thân), hỗ trợ tìm kiếm + phân trang
+ * 🔍 Tìm kiếm user theo keyword (username hoặc email)
  * @param {Object} params
- * @param {String} params.meId   - id của user hiện tại (để loại trừ)
- * @param {String} params.q      - từ khoá tìm kiếm username/email
- * @param {Number} params.page   - trang
- * @param {Number} params.limit  - số lượng/trang
+ * @param {String} params.meId - id user hiện tại (để loại trừ)
+ * @param {String} params.keyword - từ khóa tìm kiếm
+ * @param {Number} params.page - số trang
+ * @param {Number} params.limit - số lượng user/trang
  */
-export const listUsers = async ({ meId, q = "", page = 1, limit = 20 }) => {
-  const conditions = {
-    _id: { $ne: new mongoose.Types.ObjectId(meId) },
-  };
+export const searchUsers = async ({ meId, keyword = "", page = 1, limit = 10 }) => {
+  const query = { _id: { $ne: new mongoose.Types.ObjectId(meId) } };
 
-  if (q && q.trim()) {
-    const keyword = q.trim();
-    conditions.$or = [
-      { username: { $regex: keyword, $options: "i" } },
-      { email:    { $regex: keyword, $options: "i" } },
-    ];
+  if (keyword.trim()) {
+    const regex = new RegExp(keyword.trim(), "i"); // không phân biệt hoa thường
+    query.$or = [{ username: regex }, { email: regex }];
   }
 
   const skip = (Number(page) - 1) * Number(limit);
 
   const [items, total] = await Promise.all([
-    User.find(conditions)
-      .select(SAFE_PROJECTION)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit)),
-    User.countDocuments(conditions),
+    User.find(query).select(SAFE_FIELDS).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+    User.countDocuments(query),
   ]);
 
   return {
@@ -45,10 +36,4 @@ export const listUsers = async ({ meId, q = "", page = 1, limit = 20 }) => {
       totalPages: Math.ceil(total / Number(limit)),
     },
   };
-};
-
-
-export const getUser = async (id) => {
-  const user = await User.findById(id).select(SAFE_PROJECTION);
-  return user;
 };

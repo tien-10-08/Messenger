@@ -3,16 +3,20 @@ import { createContext, useState, useContext } from "react";
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
-  const [user] = useState({ id: "u123", name: "Tiến Đỗ" });
-  const [currentChat, setCurrentChat] = useState({
-    id: "conv1",
-    name: "SEP Team",
-  });
-  const [messages, setMessages] = useState([]);
+  const [currentChat, setCurrentChat] = useState(null); // object conversation
+  const [messages, setMessages] = useState([]);         // array message
+  const [pagination, setPagination] = useState(null);   // lưu phân trang tin nhắn
 
   return (
     <ChatContext.Provider
-      value={{ user, currentChat, setCurrentChat, messages, setMessages }}
+      value={{
+        currentChat,
+        setCurrentChat,
+        messages,
+        setMessages,
+        pagination,
+        setPagination,
+      }}
     >
       {children}
     </ChatContext.Provider>

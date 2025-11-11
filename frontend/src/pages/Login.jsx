@@ -20,7 +20,7 @@ const Login = () => {
     try {
       setLoading(true);
       const res = await loginUser(form);
-      login(res.user, res.token);
+      login(res.data.user, res.data.token);
       navigate("/chat");
     } catch (err) {
       alert(err.response?.data?.error || "Đăng nhập thất bại!");
