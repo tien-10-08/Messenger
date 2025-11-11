@@ -26,6 +26,12 @@ export const getMessagesByConversation = async (conversationId, page = 1, limit 
  * 📨 Gửi tin nhắn mới
  */
 export const sendMessage = async (payload) => {
-  const res = await API.post("/messages", payload);
-  return res.data.data || res.data || {};
+  try {
+    const res = await API.post("/messages", payload);
+    return res.data?.data ?? null;
+  } catch (err) {
+    console.error("❌ sendMessage API error:", err.response?.data || err.message);
+    throw err;
+  }
 };
+

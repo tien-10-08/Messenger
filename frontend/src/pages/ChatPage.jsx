@@ -15,22 +15,19 @@ const ChatPage = () => {
   const { currentChat, messages, setMessages } = useChat();
   const { user } = useAuth();
 
-  // 🧩 Đổi tên socketSend để không trùng với apiSendMessage
   const { sendMessage: socketSendMessage } = useSocket(user._id, (msg) => {
     if (msg.conversationId === currentChat?._id) {
       setMessages((prev) => [...prev, msg]);
     }
   });
 
-  // 🔹 Lấy tin nhắn mỗi khi đổi conversation
   useEffect(() => {
     const fetchMessages = async () => {
       if (!currentChat?._id) return;
       try {
         const res = await getMessagesByConversation(currentChat._id);
-        setMessages(res.data?.items || res.data || []);
         const data = res.data?.items || res.data || [];
-        setMessages(Array.isArray(data) ? data : []); // đảm bảo mảng
+        setMessages(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("❌ Lỗi tải tin nhắn:", err.response?.data);
       }
@@ -38,22 +35,22 @@ const ChatPage = () => {
     fetchMessages();
   }, [currentChat, setMessages]);
 
-  const handleSend = async (msgText) => {
-    if (!msgText.trim() || !currentChat?._id) return;
+  const handleSend = async (msgText = "") => {
+    if (typeof msgText !== "string" || !msgText.trim() || !currentChat?._id) {
+      console.warn("⚠️ handleSend: msgText không hợp lệ", msgText);
+      return;
+    }
 
     const newMsg = {
       conversationId: currentChat._id,
       senderId: user._id,
-      text: msgText,
+      text: msgText.trim(),
     };
 
     try {
       const res = await apiSendMessage(newMsg);
-      const savedMsg = res.data;
-
+      const savedMsg = res.data?.data || res.data;
       setMessages((prev) => [...prev, savedMsg]);
-
-      // Gửi qua socket cho người nhận
       socketSendMessage(savedMsg);
     } catch (err) {
       console.error("❌ Lỗi gửi tin nhắn:", err.response?.data);

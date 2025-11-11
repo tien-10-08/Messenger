@@ -22,3 +22,8 @@ export const getUserProfile = async (userId) => {
   const res = await API.get(`/users/${userId}`);
   return res.data.data || {};
 };
+
+export const updateUserProfile = async (userId, updates) => {
+  const res = await API.put(`/users/${userId}`, updates);
+  return res.data?.data || res.data || {};
+};

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getMyConversations, createOrGetConversation } from "../api/conversationApi";
+import {
+  getMyConversations,
+  createOrGetConversation,
+} from "../api/conversationApi";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useUsers } from "../context/UserContext"; // ✅ dùng context mới
@@ -17,20 +20,19 @@ const Sidebar = () => {
 
   // 🧩 Lấy danh sách hội thoại
   useEffect(() => {
-  const fetchConvos = async () => {
-    try {
-      const data = await getMyConversations(); 
-      setConversations(data);
-    } catch (err) {
-      console.error("❌ Lỗi lấy conversations:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchConvos = async () => {
+      try {
+        const data = await getMyConversations();
+        setConversations(data);
+      } catch (err) {
+        console.error("❌ Lỗi lấy conversations:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchConvos();
-}, []);
-
+    fetchConvos();
+  }, []);
 
   // 🔍 Gọi UserContext để tìm user (debounce 400ms)
   useEffect(() => {
@@ -44,8 +46,7 @@ const Sidebar = () => {
   // ➕ Tạo hoặc lấy conversation
   const handleSelectUser = async (targetUser) => {
     try {
-      const res = await createOrGetConversation(targetUser._id);
-      const convo = res.data?.data || res.data;
+      const convo = await createOrGetConversation(targetUser._id);
 
       const exists = conversations.some((c) => c._id === convo._id);
       if (!exists) setConversations((prev) => [convo, ...prev]);
@@ -54,7 +55,10 @@ const Sidebar = () => {
       setSearch("");
       setUsers([]);
     } catch (err) {
-      console.error("❌ Lỗi tạo hoặc lấy conversation:", err.response?.data);
+      console.error(
+        "❌ Lỗi tạo hoặc lấy conversation:",
+        err.response?.data || err
+      );
     }
   };
 
@@ -68,9 +72,20 @@ const Sidebar = () => {
 
   return (
     <div className="w-1/4 bg-gray-900 text-white p-4 flex flex-col border-r border-gray-800">
-      <h2 className="text-xl font-bold mb-3">Danh sách chat</h2>
+      <h2 className="text-xl font-bold">Danh sách chat</h2>
 
-      {/* Ô search */}
+      <img
+        src={user.avatar || "/default-avatar.png"}
+        alt="me"
+        title="Xem hồ sơ của bạn"
+        className="w-10 h-10 rounded-full cursor-pointer border-2 border-blue-500"
+        onClick={() => {
+          setCurrentChat(null);
+          window.dispatchEvent(
+            new CustomEvent("openProfile", { detail: user })
+          );
+        }}
+      />
       <div className="mb-3">
         <input
           type="text"
@@ -121,9 +136,7 @@ const Sidebar = () => {
               key={c._id}
               onClick={() => setCurrentChat(c)}
               className={`w-full text-left px-3 py-2 rounded-lg flex flex-col transition ${
-                currentChat?._id === c._id
-                  ? "bg-blue-600"
-                  : "hover:bg-gray-800"
+                currentChat?._id === c._id ? "bg-blue-600" : "hover:bg-gray-800"
               }`}
             >
               <div className="flex justify-between items-center">

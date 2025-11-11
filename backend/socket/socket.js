@@ -1,9 +1,12 @@
+// socket/socket.js
 import Message from "../models/messageModel.js";
 import Conversation from "../models/conversationModel.js";
 
 let users = [];
 
+// ====== 🧩 User management ======
 const addUser = (userId, socketId) => {
+  if (!userId) return;
   if (!users.some((u) => u.userId === userId)) {
     users.push({ userId, socketId });
   }
@@ -15,18 +18,34 @@ const removeUser = (socketId) => {
 
 const getUser = (userId) => users.find((u) => u.userId === userId);
 
+// ====== 🚀 Socket initialization ======
 export const initSocket = (io) => {
   io.on("connection", (socket) => {
     console.log("🟢 User connected:", socket.id);
 
+    // ✅ Khi user đăng nhập
     socket.on("addUser", (userId) => {
+      if (!userId) return;
       addUser(userId, socket.id);
-      io.emit("getUsers", users); 
+      io.emit("getUsers", users);
       console.log("👥 Online users:", users.map((u) => u.userId));
     });
 
-    socket.on("sendMessage", async ({ conversationId, senderId, receiverId, text }) => {
+    // ✅ Gửi tin nhắn text
+    socket.on("sendMessage", async (data) => {
       try {
+        if (!data || typeof data !== "object") {
+          console.warn("⚠️ sendMessage: dữ liệu rỗng hoặc không hợp lệ:", data);
+          return;
+        }
+
+        const { conversationId, senderId, receiverId, text } = data;
+
+        if (!conversationId || !senderId || !text) {
+          console.warn("⚠️ Thiếu dữ liệu cần thiết trong sendMessage:", data);
+          return;
+        }
+
         let convo = await Conversation.findById(conversationId);
         if (!convo) {
           convo = await Conversation.create({ members: [senderId, receiverId] });
@@ -42,49 +61,64 @@ export const initSocket = (io) => {
         convo.lastMessage = text || "";
         await convo.save();
 
+        // Gửi lại cho người gửi (update UI)
+        socket.emit("getMessage", msg);
+
+        // Gửi cho người nhận nếu đang online
+        const receiver = getUser(receiverId);
+        if (receiver) io.to(receiver.socketId).emit("getMessage", msg);
+      } catch (err) {
+        console.error("❌ sendMessage error:", err.message);
+        socket.emit("errorMessage", err.message);
+      }
+    });
+
+    // ✅ Gửi tin nhắn media
+    socket.on("sendMediaMessage", async (data) => {
+      try {
+        if (!data || typeof data !== "object") {
+          console.warn("⚠️ sendMediaMessage: dữ liệu rỗng:", data);
+          return;
+        }
+
+        const { conversationId, senderId, receiverId, mediaUrl, type } = data;
+
+        if (!conversationId || !senderId || !mediaUrl || !type) {
+          console.warn("⚠️ Thiếu dữ liệu trong sendMediaMessage:", data);
+          return;
+        }
+
+        let convo = await Conversation.findById(conversationId);
+        if (!convo) {
+          convo = await Conversation.create({ members: [senderId, receiverId] });
+        }
+
+        const msg = await Message.create({
+          conversationId: convo._id,
+          senderId,
+          mediaUrl,
+          type,
+        });
+
+        convo.lastMessage = type === "image" ? "📷 Hình ảnh" : "🎤 Voice message";
+        await convo.save();
+
         socket.emit("getMessage", msg);
 
         const receiver = getUser(receiverId);
         if (receiver) io.to(receiver.socketId).emit("getMessage", msg);
       } catch (err) {
-        console.error("sendMessage error:", err.message);
-        socket.emit("errorMessage", err.message);
+        console.error("❌ sendMediaMessage error:", err.message);
       }
     });
 
-    socket.on(
-      "sendMediaMessage",
-      async ({ conversationId, senderId, receiverId, mediaUrl, type }) => {
-        try {
-          let convo = await Conversation.findById(conversationId);
-          if (!convo) {
-            convo = await Conversation.create({ members: [senderId, receiverId] });
-          }
-
-          const msg = await Message.create({
-            conversationId: convo._id,
-            senderId,
-            mediaUrl,
-            type,
-          });
-
-          convo.lastMessage = type === "image" ? "📷 Hình ảnh" : "🎤 Voice message";
-          await convo.save();
-
-          socket.emit("getMessage", msg);
-
-          const receiver = getUser(receiverId);
-          if (receiver) io.to(receiver.socketId).emit("getMessage", msg);
-        } catch (err) {
-          console.error("sendMediaMessage error:", err.message);
-          socket.emit("errorMessage", err.message);
-        }
-      }
-    );
-
-    /** 👀 Đánh dấu tin nhắn đã xem */
-    socket.on("seenMessage", async ({ messageId, userId, receiverId }) => {
+    // ✅ Đánh dấu đã xem
+    socket.on("seenMessage", async (data) => {
       try {
+        if (!data) return;
+        const { messageId, userId, receiverId } = data;
+        if (!messageId || !userId) return;
+
         const msg = await Message.findById(messageId);
         if (!msg) return;
 
@@ -93,7 +127,6 @@ export const initSocket = (io) => {
           await msg.save();
         }
 
-        // Gửi realtime về cho người gửi biết tin đã xem
         const receiver = getUser(receiverId);
         if (receiver) {
           io.to(receiver.socketId).emit("messageSeen", {
@@ -102,27 +135,27 @@ export const initSocket = (io) => {
           });
         }
       } catch (err) {
-        console.error("seenMessage error:", err.message);
+        console.error("❌ seenMessage error:", err.message);
       }
     });
 
-    /** ⌨️ Thông báo đang gõ */
-    socket.on("typing", ({ senderId, receiverId }) => {
+    // ✅ Trạng thái đang gõ
+    socket.on("typing", (data) => {
+      if (!data) return;
+      const { senderId, receiverId } = data;
       const receiver = getUser(receiverId);
-      if (receiver) {
-        io.to(receiver.socketId).emit("userTyping", { senderId });
-      }
+      if (receiver) io.to(receiver.socketId).emit("userTyping", { senderId });
     });
 
-    /** ⏹️ Khi user dừng gõ */
-    socket.on("stopTyping", ({ senderId, receiverId }) => {
+    // ✅ Dừng gõ
+    socket.on("stopTyping", (data) => {
+      if (!data) return;
+      const { senderId, receiverId } = data;
       const receiver = getUser(receiverId);
-      if (receiver) {
-        io.to(receiver.socketId).emit("userStopTyping", { senderId });
-      }
+      if (receiver) io.to(receiver.socketId).emit("userStopTyping", { senderId });
     });
 
-    /** 🔴 Khi user ngắt kết nối */
+    // ✅ Khi user ngắt kết nối
     socket.on("disconnect", () => {
       console.log("🔴 User disconnected:", socket.id);
       removeUser(socket.id);

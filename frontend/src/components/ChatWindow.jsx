@@ -14,27 +14,30 @@ const ChatWindow = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [otherUser, setOtherUser] = useState(null);
   const bottomRef = useRef();
+  const [profileUser, setProfileUser] = useState(null);
 
   // 🔹 Lấy danh sách tin nhắn khi currentChat thay đổi
   useEffect(() => {
-  const fetchMessages = async () => {
-    if (!currentChat?._id) {
-      setMessages([]);
-      return;
-    }
+    const fetchMessages = async () => {
+      if (!currentChat?._id) {
+        setMessages([]);
+        return;
+      }
 
-    try {
-      const { items } = await getMessagesByConversation(currentChat._id);
-      setMessages(items);
-    } catch (err) {
-      console.error("❌ Lỗi tải tin nhắn:", err.response?.data || err.message);
-      setMessages([]);
-    }
-  };
+      try {
+        const { items } = await getMessagesByConversation(currentChat._id);
+        setMessages(items);
+      } catch (err) {
+        console.error(
+          "❌ Lỗi tải tin nhắn:",
+          err.response?.data || err.message
+        );
+        setMessages([]);
+      }
+    };
 
-  fetchMessages();
-}, [currentChat]);
-
+    fetchMessages();
+  }, [currentChat]);
 
   // 🔹 Xác định và load thông tin người còn lại
   useEffect(() => {
@@ -52,13 +55,25 @@ const ChatWindow = () => {
           const res = await getUserProfile(otherId);
           setOtherUser(res.data);
         } catch (err) {
-          console.error("❌ Lỗi load otherUser:", err.response?.data || err.message);
+          console.error(
+            "❌ Lỗi load otherUser:",
+            err.response?.data || err.message
+          );
         }
       }
     };
 
     fetchOtherUser();
   }, [currentChat, user]);
+
+  useEffect(() => {
+    const handleOpenProfile = (e) => {
+      setShowProfile(true);
+      setProfileUser(e.detail); // new state
+    };
+    window.addEventListener("openProfile", handleOpenProfile);
+    return () => window.removeEventListener("openProfile", handleOpenProfile);
+  }, []);
 
   // 🔹 Tự động cuộn xuống cuối khi có tin nhắn mới
   useEffect(() => {
@@ -88,30 +103,33 @@ const ChatWindow = () => {
           onProfileClick={() => setShowProfile(true)}
         />
 
-        {/* Danh sách tin nhắn */}
         <div className="flex flex-col gap-3 flex-1 overflow-y-auto p-4">
           {Array.isArray(messages) && messages.length > 0 ? (
-            messages.map((m) => (
-              <div
-                key={m._id}
-                className={`flex ${
-                  m.senderId._id === user._id ? "justify-end" : "justify-start"
-                }`}
-              >
+            messages
+              .filter((m) => m && (m.senderId || m.senderId?._id))
+              .map((m) => (
                 <div
-                  className={`max-w-xs p-3 rounded-2xl text-sm shadow ${
-                    m.senderId._id === user._id
-                      ? "bg-blue-600 rounded-br-none"
-                      : "bg-gray-700 rounded-bl-none"
+                  key={m._id}
+                  className={`flex ${
+                    (m.senderId?._id || m.senderId) === user._id
+                      ? "justify-end"
+                      : "justify-start"
                   }`}
                 >
-                  <p>{m.text}</p>
-                  <span className="text-xs text-gray-300 block mt-1 text-right">
-                    {formatTime(m.createdAt)}
-                  </span>
+                  <div
+                    className={`max-w-xs p-3 rounded-2xl text-sm shadow ${
+                      (m.senderId?._id || m.senderId) === user._id
+                        ? "bg-blue-600 rounded-br-none"
+                        : "bg-gray-700 rounded-bl-none"
+                    }`}
+                  >
+                    <p>{m.text}</p>
+                    <span className="text-xs text-gray-300 block mt-1 text-right">
+                      {formatTime(m.createdAt)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
           ) : (
             <p className="text-gray-500 italic text-sm text-center">
               Chưa có tin nhắn nào
@@ -122,7 +140,10 @@ const ChatWindow = () => {
       </div>
 
       {showProfile && (
-        <ProfilePanel user={otherUser} onClose={() => setShowProfile(false)} />
+        <ProfilePanel
+          user={profileUser || otherUser}
+          onClose={() => setShowProfile(false)}
+        />
       )}
     </div>
   );
