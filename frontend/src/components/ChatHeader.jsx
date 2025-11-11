@@ -1,6 +1,6 @@
 // src/components/ChatHeader.jsx
 import React from "react";
-import { Info, Phone, Video } from "lucide-react"; // icon đẹp
+import { Info, Phone, Video } from "lucide-react";
 
 const ChatHeader = ({ user, onProfileClick }) => {
   if (!user) {

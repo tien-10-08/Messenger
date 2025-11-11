@@ -106,7 +106,7 @@ const ProfileForm = ({ user, onUpdated }) => {
         </label>
       </div>
       <div>
-        <label className="text-xs text-gray-400">Tên hiển thị</label>
+        <label className="text-xs text-gray-400">Tên</label>
         <input
           type="text"
           name="username"
