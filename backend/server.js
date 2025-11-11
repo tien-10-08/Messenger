@@ -9,6 +9,7 @@ import connectDB from "./config/db.js";
 import { initSocket } from "./socket/socket.js";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 
@@ -36,7 +37,7 @@ app.use("/api/users", userRoutes);
 app.get("/", (req, res) => {
   res.send("🚀 Messenger backend is running...");
 });
-
+app.use("/api/profile", profileRoutes);
 app.use((err, req, res, next) => {
   console.error("🔥 Global error:", err);
   res.status(500).json({ error: err.message || "Internal Server Error" });

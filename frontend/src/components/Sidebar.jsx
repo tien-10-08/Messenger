@@ -45,7 +45,7 @@ const Sidebar = () => {
         try {
           setSearching(true);
           const res = await searchUsers(search);
-          const users = res.data?.items || [];
+          const users = res.data?.data || res.data || [];
           setResults(users);
         } catch (err) {
           console.error("Lỗi tìm kiếm user:", err);
@@ -120,7 +120,6 @@ const Sidebar = () => {
                 >
                   <div className="flex flex-col">
                     <span className="font-semibold">{u.username}</span>
-                    <span className="text-xs text-gray-400">{u.email}</span>
                   </div>
                 </div>
               ))}
