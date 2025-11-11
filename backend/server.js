@@ -7,7 +7,7 @@ import { Server } from "socket.io";
 
 import connectDB from "./config/db.js";
 import { initSocket } from "./socket/socket.js";
-
+import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
@@ -32,7 +32,7 @@ app.use(morgan("dev"));
 app.use("/api/auth", authRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
-
+app.use("/api/users", userRoutes);
 app.get("/", (req, res) => {
   res.send("🚀 Messenger backend is running...");
 });
