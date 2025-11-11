@@ -5,34 +5,26 @@ import { useSocket } from "../context/SocketContext";
 import { formatTime } from "../utils/formatTime";
 import ChatHeader from "./ChatHeader";
 import ProfilePanel from "./ProfilePanel";
-import { getMessagesByConversation } from "../api/messageApi";
 import { getUserProfile } from "../api/userApi";
 import ChatInput from "./ChatInput";
 
 const ChatWindow = () => {
   const { user } = useAuth();
   const { currentChat, messages, setMessages } = useChat();
-  const { socket, sendMessage, sendTyping } = useSocket();
+  const { sendMessage, sendTyping, joinConversation } = useSocket();
 
   const [showProfile, setShowProfile] = useState(false);
   const [otherUser, setOtherUser] = useState(null);
-  const [profileUser, setProfileUser] = useState(null);
   const bottomRef = useRef();
 
-  // Lấy lịch sử tin nhắn
+  // Join room và nhận lịch sử qua socket
   useEffect(() => {
-    const fetchMessages = async () => {
-      if (!currentChat?._id) return setMessages([]);
-      try {
-        const { items } = await getMessagesByConversation(currentChat._id);
-        setMessages(items);
-      } catch (err) {
-        console.error(err);
-        setMessages([]);
-      }
-    };
-    fetchMessages();
-  }, [currentChat]);
+    if (!currentChat?._id) {
+      setMessages([]);
+      return;
+    }
+    joinConversation(currentChat._id);
+  }, [currentChat, joinConversation, setMessages]);
 
   // Lấy thông tin người chat còn lại
   useEffect(() => {
@@ -71,10 +63,10 @@ const ChatWindow = () => {
           )}
           <div ref={bottomRef} />
         </div>
-        <ChatInput onSend={(text) => sendMessage({ conversationId: currentChat._id, senderId: user._id, receiverId: otherUser?._id, text, createdAt: new Date() })} onTyping={(isTyping) => sendTyping(currentChat._id, isTyping)} />
+        <ChatInput onSend={(text) => sendMessage({ conversationId: currentChat._id, senderId: user._id, receiverId: otherUser?._id, text })} onTyping={(isTyping) => sendTyping(currentChat._id, isTyping)} />
       </div>
 
-      {showProfile && <ProfilePanel user={profileUser || otherUser} onClose={() => setShowProfile(false)} />}
+      {showProfile && <ProfilePanel user={otherUser} onClose={() => setShowProfile(false)} />}
     </div>
   );
 };

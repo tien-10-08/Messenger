@@ -22,8 +22,19 @@ export const createAndSendMessage = async (io, { conversationId, senderId, recei
   convo.lastMessage = text;
   await convo.save();
 
-  const receiver = getUser(receiverId);
-  if (receiver) io.to(receiver.socketId).emit("getMessage", msg);
+  // Populate để client có đủ thông tin hiển thị
+  const populated = await Message.findById(msg._id).populate("senderId", "username email");
 
-  return msg;
+  // Emit theo room conversation, đảm bảo cả 2 phía (đã join) đều nhận
+  io.to(conversationId).emit("getMessage", populated);
+
+  // Emit cập nhật preview cho Sidebar tới tất cả members (kể cả chưa join room)
+  const updatedPayload = { conversationId, lastMessage: text, updatedAt: populated.createdAt };
+  const memberIds = (convo.members || []).map(m => m.toString());
+  memberIds.forEach((uid) => {
+    const u = getUser(uid);
+    if (u?.socketId) io.to(u.socketId).emit("conversationUpdated", updatedPayload);
+  });
+
+  return populated;
 };
