@@ -11,10 +11,11 @@ import ChatInput from "./ChatInput";
 const ChatWindow = () => {
   const { user } = useAuth();
   const { currentChat, messages, setMessages } = useChat();
-  const { sendMessage, sendTyping, joinConversation } = useSocket();
+  const { sendMessage, sendTyping, joinConversation, on, off } = useSocket();
 
   const [showProfile, setShowProfile] = useState(false);
   const [otherUser, setOtherUser] = useState(null);
+  const [otherTyping, setOtherTyping] = useState(false);
   const bottomRef = useRef();
 
   // Join room và nhận lịch sử qua socket
@@ -24,6 +25,7 @@ const ChatWindow = () => {
       return;
     }
     joinConversation(currentChat._id);
+    setOtherTyping(false);
   }, [currentChat, joinConversation, setMessages]);
 
   // Lấy thông tin người chat còn lại
@@ -35,6 +37,18 @@ const ChatWindow = () => {
     if (typeof otherId === "object") setOtherUser(otherId);
     else getUserProfile(otherId).then(res => setOtherUser(res.data)).catch(console.error);
   }, [currentChat, user]);
+
+  // Lắng nghe typing của đối phương
+  useEffect(() => {
+    if (!currentChat?._id || !otherUser?._id) return;
+    const handler = ({ conversationId, userId, isTyping }) => {
+      if (conversationId === currentChat._id && userId === otherUser._id) {
+        setOtherTyping(!!isTyping);
+      }
+    };
+    on?.("userTyping", handler);
+    return () => off?.("userTyping", handler);
+  }, [currentChat?._id, otherUser?._id, on, off]);
 
   // Scroll cuối
   useEffect(() => {
@@ -48,6 +62,9 @@ const ChatWindow = () => {
     <div className="flex flex-1 bg-gray-800 text-white">
       <div className={`flex flex-col flex-1 transition-all duration-300 ${showProfile ? "w-[calc(100%-20rem)]" : "w-full"}`}>
         <ChatHeader user={otherUser} onProfileClick={() => setShowProfile(true)} />
+        {otherTyping && (
+          <div className="px-4 py-1 text-xs text-gray-300">{otherUser?.username || "Đối phương"} đang soạn...</div>
+        )}
         <div className="flex flex-col gap-3 flex-1 overflow-y-auto p-4">
           {messages.length > 0 ? (
             messages.map(m => (

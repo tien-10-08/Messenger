@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getProfile } from "../api/profileApi";
+import { getMyProfile } from "../api/profileApi";
 import { useAuth } from "../context/AuthContext";
 import ProfileForm from "../components/ProfileForm";
 
@@ -11,8 +11,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await getProfile(user._id, true);
-        setProfile(res.data);
+        const me = await getMyProfile();
+        setProfile(me);
       } catch (err) {
         console.error("Lỗi lấy thông tin profile:", err);
       } finally {

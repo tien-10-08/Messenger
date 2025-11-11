@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useCallback, useMemo } from "react";
 import { io } from "socket.io-client";
 import { useChat } from "./ChatContext";
 import { useAuth } from "./AuthContext";
@@ -60,22 +60,39 @@ export const SocketProvider = ({ children }) => {
     };
   }, [user?._id]);
 
-  const sendMessage = (msg) => {
+  const sendMessage = useCallback((msg) => {
     socket.current?.emit("sendMessage", msg);
     // Không thêm lạc quan để tránh trùng; chờ server broadcast theo room
-  };
+  }, []);
 
-  const sendTyping = (conversationId, isTyping) => {
+  const sendTyping = useCallback((conversationId, isTyping) => {
     socket.current?.emit("typing", { conversationId, userId: user._id, isTyping });
-  };
+  }, [user?._id]);
 
-  const joinConversation = (conversationId) => {
+  const joinConversation = useCallback((conversationId) => {
     if (!conversationId) return;
     socket.current?.emit("joinConversation", { conversationId });
-  };
+  }, []);
+
+  const on = useCallback((event, handler) => {
+    socket.current?.on(event, handler);
+  }, []);
+
+  const off = useCallback((event, handler) => {
+    socket.current?.off(event, handler);
+  }, []);
+
+  const value = useMemo(() => ({
+    socket: socket.current,
+    sendMessage,
+    sendTyping,
+    joinConversation,
+    on,
+    off,
+  }), [sendMessage, sendTyping, joinConversation, on, off]);
 
   return (
-    <SocketContext.Provider value={{ socket: socket.current, sendMessage, sendTyping, joinConversation }}>
+    <SocketContext.Provider value={value}>
       {children}
     </SocketContext.Provider>
   );

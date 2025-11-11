@@ -5,11 +5,13 @@ import { useUsers } from "../context/UserContext";
 import { getMyConversations, createOrGetConversation } from "../api/conversationApi";
 import { getConversationTitle } from "../utils/getConversationTitle";
 import { formatTime } from "../utils/formatTime";
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const { user } = useAuth();
   const { currentChat, setCurrentChat, conversations, setConversations } = useChat();
   const { users, loading: searching, fetchUsers, setUsers } = useUsers();
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ const Sidebar = () => {
     <div className="w-1/4 bg-gray-900 text-white p-4 flex flex-col border-r border-gray-800">
       <h2 className="text-xl font-bold">Danh sách chat</h2>
 
-      <img src={user.avatar || "/default-avatar.png"} alt="me" title="Xem hồ sơ" className="w-10 h-10 rounded-full cursor-pointer border-2 border-blue-500 mb-2" onClick={() => { setCurrentChat(null); window.dispatchEvent(new CustomEvent("openProfile", { detail: user })); }} />
+      <img src={user.avatar || "/default-avatar.png"} alt="me" title="Xem hồ sơ" className="w-10 h-10 rounded-full cursor-pointer border-2 border-blue-500 mb-2" onClick={() => { setCurrentChat(null); navigate("/profile"); }} />
 
       <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Tìm người để nhắn..." className="w-full px-3 py-2 bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2" />
 

@@ -11,10 +11,17 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-/** 🔹 Lấy profile user */
-export const getProfile = (userId, includePrivate = false) =>
-  API.get(`/profile/${userId}?includePrivate=${includePrivate}`);
+export const getMyProfile = async () => {
+  const res = await API.get(`/profile/me`);
+  return res.data.data;
+};
 
-/** 🔹 Cập nhật profile */
-export const updateProfile = (userId, data) =>
-  API.patch(`/profile/${userId}`, data);
+export const getProfile = async (userId) => {
+  const res = await API.get(`/profile/${userId}`);
+  return res.data.data;
+};
+
+export const updateProfile = async (_userIdIgnored, data) => {
+  const res = await API.patch(`/profile/update`, data);
+  return res.data.data;
+};

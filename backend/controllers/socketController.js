@@ -21,9 +21,9 @@ export const handleSendMessage = async (io, socket, data) => {
   }
 };
 
-export const handleTyping = (io, socket, { receiverId, senderId }) => {
-  const receiver = socketService.getUser(receiverId);
-  if (receiver) io.to(receiver.socketId).emit("userTyping", { senderId });
+export const handleTyping = (io, socket, { conversationId, userId, isTyping }) => {
+  if (!conversationId || !userId) return;
+  io.to(conversationId).emit("userTyping", { conversationId, userId, isTyping: !!isTyping });
 };
 
 export const handleJoinConversation = async (io, socket, { conversationId }) => {

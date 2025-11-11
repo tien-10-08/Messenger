@@ -21,8 +21,8 @@ const ProfileForm = ({ user, onUpdated }) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await updateProfile(user._id, form);
-      onUpdated(res.data);
+      const updated = await updateProfile(null, form);
+      onUpdated(updated);
       toast.success("Cập nhật thành công 🎉");
       setEditing(false);
     } catch (err) {
