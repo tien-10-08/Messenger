@@ -7,7 +7,7 @@ import ChatHeader from "./ChatHeader";
 import ProfilePanel from "./ProfilePanel";
 import { getUserProfile } from "../api/userApi";
 import ChatInput from "./ChatInput";
-import { markMessageSeen } from "../api/messageApi";
+import { markMessageSeen, uploadMediaMessage } from "../api/messageApi";
 
 const ChatWindow = () => {
   const { user } = useAuth();
@@ -105,6 +105,20 @@ const ChatWindow = () => {
   if (!currentChat?._id)
     return <div className="flex-1 bg-gray-800 flex items-center justify-center text-gray-400">Chọn cuộc trò chuyện để bắt đầu</div>;
 
+  const handleSendMedia = async (type, file) => {
+    if (!file || !currentChat?._id) return;
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("conversationId", currentChat._id);
+      formData.append("type", type);
+      await uploadMediaMessage(formData);
+      // message media sẽ được nhận qua socket getMessage
+    } catch (err) {
+      console.error("uploadMediaMessage error", err);
+    }
+  };
+
   return (
     <div className="flex flex-1 bg-gray-800 text-white">
       <div
@@ -126,10 +140,21 @@ const ChatWindow = () => {
               return messages.map(m => {
                 const mine = String(m?.senderId?._id || m?.senderId) === String(user._id);
                 const isLastSeen = mine && String(m?._id) === String(lastSeenId);
+                const isImage = m.type === "image";
+                const isVoice = m.type === "voice";
                 return (
                   <div key={m._id || m.createdAt} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-xs p-3 rounded-2xl text-sm shadow ${mine ? "bg-blue-600 rounded-br-none" : "bg-gray-700 rounded-bl-none"}`}>
-                      <p>{m.text}</p>
+                      {isImage && m.mediaUrl && (
+                        <img src={m.mediaUrl} alt="media" className="max-w-full rounded mb-1" />
+                      )}
+                      {isVoice && m.mediaUrl && (
+                        <audio controls className="w-full mb-1">
+                          <source src={m.mediaUrl} />
+                          Trình duyệt không hỗ trợ audio.
+                        </audio>
+                      )}
+                      {!isImage && !isVoice && <p>{m.text}</p>}
                       <span className="text-xs text-gray-300 block mt-1 text-right">{formatTime(m.createdAt)}</span>
                     </div>
                     {isLastSeen && (
@@ -152,7 +177,11 @@ const ChatWindow = () => {
         {otherTyping && (
           <div className="px-4 py-1 text-xs text-gray-300">{otherUser?.username || "Đối phương"} đang soạn...</div>
         )}
-        <ChatInput onSend={(text) => sendMessage({ conversationId: currentChat._id, senderId: user._id, receiverId: otherUser?._id, text })} onTyping={(isTyping) => sendTyping(currentChat._id, isTyping)} />
+        <ChatInput
+          onSend={(text) => sendMessage({ conversationId: currentChat._id, senderId: user._id, receiverId: otherUser?._id, text })}
+          onTyping={(isTyping) => sendTyping(currentChat._id, isTyping)}
+          onSendMedia={handleSendMedia}
+        />
       </div>
 
       {showProfile && <ProfilePanel user={otherUser} onClose={() => setShowProfile(false)} />}

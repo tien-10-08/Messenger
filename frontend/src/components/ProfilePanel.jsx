@@ -11,16 +11,12 @@ const ProfilePanel = ({ user, onClose }) => {
         {safeUser.email && <p className="text-sm text-gray-400">{safeUser.email}</p>}
         <div className="w-full mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-400">ID</span>
-            <span className="text-gray-200 truncate max-w-[12rem]" title={String(safeUser._id || "").toString()}>{String(safeUser._id || "")}</span>
-          </div>
-          <div className="flex justify-between">
             <span className="text-gray-400">Tên</span>
             <span className="text-gray-200 truncate max-w-[12rem]">{safeUser.username || ""}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Trạng thái</span>
-            <span className="text-gray-200 truncate max-w-[12rem]">{safeUser.status || ""}</span>
+            <span className="text-gray-200 truncate max-w-[12rem]">{safeUser.status ? safeUser.status?.trim() : "Hello, I'm " + `${safeUser.username}`}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Ngày tạo</span>

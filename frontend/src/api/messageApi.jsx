@@ -43,3 +43,13 @@ export const markMessageSeen = async (messageId) => {
   return true;
 };
 
+/**
+ * 📸 / 🎤 Upload tin nhắn media (image hoặc voice)
+ */
+export const uploadMediaMessage = async (formData) => {
+  const res = await API.post("/messages/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data?.data ?? null;
+};
+

@@ -4,6 +4,7 @@ import cloudinary from "../utils/cloudinary.js";
 import fs from "fs";
 import Message from "../models/messageModel.js";
 import * as socketService from "../services/socketService.js";
+import Conversation from "../models/conversationModel.js";
 
 // 📨 Gửi tin nhắn text
 export const sendMessage = async (req, res) => {
@@ -108,7 +109,49 @@ export const uploadMediaMessage = async (req, res) => {
       mediaUrl: result.secure_url,
     });
 
-    res.status(201).json({ data: msg });
+    // Cập nhật lastMessage cho conversation (hiển thị ở Sidebar)
+    let convo = null;
+    try {
+      convo = await Conversation.findById(conversationId);
+      if (convo) {
+        convo.lastMessage = type === "image" ? "[Ảnh]" : type === "voice" ? "[Voice]" : "";
+        await convo.save();
+      }
+    } catch {}
+
+    // Populate sender cho client dễ hiển thị
+    const populated = await Message.findById(msg._id).populate("senderId", "username email");
+
+    // Emit qua socket giống gửi text để client nhận realtime
+    try {
+      const io = socketService.getIO?.();
+      if (io && conversationId) {
+        const convId = String(conversationId);
+
+        // Gửi message tới room
+        io.to(convId).emit("getMessage", populated);
+
+        // Echo cho sender (phòng trường hợp chưa join room)
+        const senderSock = socketService.getUser(senderId?.toString?.() || String(senderId));
+        if (senderSock?.socketId) io.to(senderSock.socketId).emit("getMessage", populated);
+
+        // Cập nhật preview Sidebar cho tất cả member
+        if (convo) {
+          const updatedPayload = {
+            conversationId: convId,
+            lastMessage: convo.lastMessage,
+            updatedAt: populated.createdAt,
+          };
+          const memberIds = (convo.members || []).map(m => m.toString());
+          memberIds.forEach((uid) => {
+            const u = socketService.getUser(uid);
+            if (u?.socketId) io.to(u.socketId).emit("conversationUpdated", updatedPayload);
+          });
+        }
+      }
+    } catch {}
+
+    res.status(201).json({ data: populated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
