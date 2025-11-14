@@ -1,28 +1,32 @@
-// src/api/profileApi.js
-import axios from "axios";
+import { apiClient } from "./apiConfig";
 
-const API = axios.create({
-  baseURL: "http://localhost:8080/api", // ⚠️ đổi đúng port backend
-});
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
+/**
+ * 👤 Lấy thông tin profile của chính mình
+ */
 export const getMyProfile = async () => {
-  const res = await API.get(`/profile/me`);
+  const res = await apiClient.get(`/profile/me`);
   return res.data.data;
 };
 
+/**
+ * 🔍 Lấy profile của người khác
+ */
 export const getProfile = async (userId) => {
-  const res = await API.get(`/profile/${userId}`);
+  const res = await apiClient.get(`/profile/${userId}`);
   return res.data.data;
 };
 
+/**
+ * ✏️ Cập nhật profile
+ */
 export const updateProfile = async (_userIdIgnored, data) => {
-  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
-  const res = await API.patch(`/profile/update`, data, isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined);
+  const isFormData =
+    typeof FormData !== "undefined" && data instanceof FormData;
+
+  const res = await apiClient.patch(`/profile/update`, data, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+  });
+
   return res.data.data;
 };
+

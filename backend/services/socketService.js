@@ -1,48 +1,89 @@
 import Message from "../models/messageModel.js";
 import Conversation from "../models/conversationModel.js";
+import { AppError } from "../utils/errorHandler.js";
+import { SOCKET_EVENTS, ERROR_MESSAGES } from "../config/constants.js";
 
 let users = [];
 let ioRef = null;
 
-export const setIO = (io) => { ioRef = io; };
+export const setIO = (io) => {
+  ioRef = io;
+};
+
 export const getIO = () => ioRef;
 
+/**
+ * Add user to online list
+ */
 export const addUser = (userId, socketId) => {
-  if (!users.some((u) => u.userId === userId)) users.push({ userId, socketId });
+  // Remove old connection if exists
+  users = users.filter((u) => u.userId !== userId);
+  users.push({ userId, socketId });
 };
 
+/**
+ * Remove user from online list
+ */
 export const removeUser = (socketId) => {
+  const user = users.find((u) => u.socketId === socketId);
   users = users.filter((u) => u.socketId !== socketId);
+  return user;
 };
 
-export const getUser = (userId) => users.find((u) => u.userId === userId);
+/**
+ * Get user by userId
+ */
+export const getUser = (userId) => {
+  return users.find((u) => u.userId === userId);
+};
+
+/**
+ * Get all online users
+ */
 export const getAllUsers = () => users;
 
+/**
+ * Create message & broadcast to conversation room
+ */
 export const createAndSendMessage = async (io, { conversationId, senderId, receiverId, text }) => {
   const convo = await Conversation.findById(conversationId);
-  if (!convo) throw new Error("Conversation not found");
+  if (!convo) throw new AppError(ERROR_MESSAGES.CONVERSATION_NOT_FOUND);
 
-  const msg = await Message.create({ conversationId, senderId, text });
+  const msg = await Message.create({
+    conversationId,
+    senderId,
+    text,
+    type: "text",
+  });
+
   convo.lastMessage = text;
   await convo.save();
 
-  // Populate để client có đủ thông tin hiển thị
-  const populated = await Message.findById(msg._id).populate("senderId", "username email");
+  // Populate sender info
+  const populated = await Message.findById(msg._id).populate("senderId", "_id username email avatar");
 
-  // Emit theo room conversation, đảm bảo cả 2 phía (đã join) đều nhận
-  io.to(conversationId).emit("getMessage", populated);
+  // Broadcast to room
+  io.to(conversationId).emit(SOCKET_EVENTS.GET_MESSAGE, populated);
 
-  // Echo trực tiếp cho sender để tránh race-condition khi sender chưa kịp join room
-  // Phía client đã chống trùng theo _id nên nếu đã nhận qua room sẽ bỏ qua bản trùng
+  // Echo to sender (for sync if not yet joined room)
   const senderSock = getUser(senderId?.toString?.() || String(senderId));
-  if (senderSock?.socketId) io.to(senderSock.socketId).emit("getMessage", populated);
+  if (senderSock?.socketId) {
+    io.to(senderSock.socketId).emit(SOCKET_EVENTS.GET_MESSAGE, populated);
+  }
 
-  // Emit cập nhật preview cho Sidebar tới tất cả members (kể cả chưa join room)
-  const updatedPayload = { conversationId, lastMessage: text, updatedAt: populated.createdAt };
-  const memberIds = (convo.members || []).map(m => m.toString());
+  // Update sidebar for all members
+  const updatedPayload = {
+    conversationId: String(conversationId),
+    lastMessage: text,
+    updatedAt: populated.createdAt,
+  };
+
+  const memberIds = (convo.members || []).map((m) => m.toString());
   memberIds.forEach((uid) => {
     const u = getUser(uid);
-    if (u?.socketId) io.to(u.socketId).emit("conversationUpdated", updatedPayload);
+    if (u?.socketId) {
+      io.to(u.socketId).emit(SOCKET_EVENTS.CONVERSATION_UPDATED, updatedPayload);
+    }
   });
 
   return populated;

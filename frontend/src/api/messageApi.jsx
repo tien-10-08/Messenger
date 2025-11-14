@@ -1,21 +1,16 @@
-import axios from "axios";
-
-const API = axios.create({
-  baseURL: "http://localhost:8080/api",
-});
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+import { apiClient } from "./apiConfig";
 
 /**
  * 💬 Lấy danh sách tin nhắn theo conversationId
- * Backend trả { data: [...], pagination: {...} }
  */
-export const getMessagesByConversation = async (conversationId, page = 1, limit = 20) => {
-  const res = await API.get(`/messages/${conversationId}?page=${page}&limit=${limit}`);
+export const getMessagesByConversation = async (
+  conversationId,
+  page = 1,
+  limit = 20
+) => {
+  const res = await apiClient.get(
+    `/messages/${conversationId}?page=${page}&limit=${limit}`
+  );
   return {
     items: res.data.data || [],
     pagination: res.data.pagination || null,
@@ -27,10 +22,10 @@ export const getMessagesByConversation = async (conversationId, page = 1, limit 
  */
 export const sendMessage = async (payload) => {
   try {
-    const res = await API.post("/messages", payload);
+    const res = await apiClient.post("/messages", payload);
     return res.data?.data ?? null;
   } catch (err) {
-    console.error("❌ sendMessage API error:", err.response?.data || err.message);
+    console.error("❌ sendMessage API error:", err);
     throw err;
   }
 };
@@ -39,7 +34,7 @@ export const sendMessage = async (payload) => {
  * 👀 Đánh dấu 1 tin nhắn đã xem
  */
 export const markMessageSeen = async (messageId) => {
-  await API.patch(`/messages/${messageId}/seen`);
+  await apiClient.patch(`/messages/${messageId}/seen`);
   return true;
 };
 
@@ -47,9 +42,10 @@ export const markMessageSeen = async (messageId) => {
  * 📸 / 🎤 Upload tin nhắn media (image hoặc voice)
  */
 export const uploadMediaMessage = async (formData) => {
-  const res = await API.post("/messages/upload", formData, {
+  const res = await apiClient.post("/messages/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data?.data ?? null;
 };
+
 

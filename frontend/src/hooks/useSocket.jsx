@@ -1,23 +1,10 @@
-import { useEffect, useRef } from "react";
-import { io } from "socket.io-client";
+/**
+ * @deprecated This hook is deprecated
+ * Use useSocket from "context/SocketContext" instead
+ * SocketContext provides centralized socket management with proper cleanup
+ */
 
-export const useSocket = (userId, onMessage) => {
-  const socket = useRef();
+import { useSocket as useSocketContext } from "../context/SocketContext";
 
-  useEffect(() => {
-    socket.current = io("http://localhost:8080");
-    socket.current.emit("addUser", userId);
+export const useSocket = useSocketContext;
 
-    socket.current.on("getMessage", (msg) => {
-      onMessage(msg);
-    });
-
-    return () => socket.current.disconnect();
-  }, [userId, onMessage]);
-
-  const sendMessage = (msg) => {
-    socket.current.emit("sendMessage", msg);
-  };
-
-  return { sendMessage };
-};

@@ -1,22 +1,18 @@
-import axios from "axios";
+import { apiClient } from "./apiConfig";
 
-const API = axios.create({
-  baseURL: "http://localhost:8080/api",
-});
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
+/**
+ * 💬 Lấy danh sách các cuộc trò chuyện của tôi
+ */
 export const getMyConversations = async () => {
-  const res = await API.get("/conversations");
-  return res.data.data || []; 
+  const res = await apiClient.get("/conversations");
+  return res.data.data || [];
 };
 
-// 💬 Tạo hoặc lấy cuộc trò chuyện giữa 2 người
+/**
+ * 💬 Tạo hoặc lấy cuộc trò chuyện giữa 2 người
+ */
 export const createOrGetConversation = async (partnerId) => {
-  const res = await API.post("/conversations", { partnerId });
-  return res.data.data || res.data; 
+  const res = await apiClient.post("/conversations", { partnerId });
+  return res.data.data || res.data;
 };
+
