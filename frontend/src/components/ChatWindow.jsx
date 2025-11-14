@@ -120,7 +120,7 @@ const ChatWindow = () => {
   };
 
   return (
-    <div className="flex flex-1 bg-gray-800 text-white">
+    <div className="flex flex-1 bg-gradient-to-b from-slate-800 to-slate-900 text-white">
       <div
         className={`flex flex-col flex-1 transition-all duration-300 ${showProfile ? "w-[calc(100%-20rem)]" : "w-full"}`}
         onClick={markAllFromOtherAsSeen}
@@ -128,10 +128,12 @@ const ChatWindow = () => {
         tabIndex={0}
       >
         <ChatHeader user={otherUser} onProfileClick={() => setShowProfile(true)} />
-        <div className="flex flex-col gap-3 flex-1 overflow-y-auto p-4">
+        
+        {/* Messages Container */}
+        <div className="flex flex-col gap-4 flex-1 overflow-y-auto p-6">
           {messages.length > 0 ? (
             (() => {
-              // Xác định tin nhắn mới nhất của tôi đã được đối phương xem
+              // Determine last message from me seen by other user
               const lastSeenId = [...messages]
                 .filter(m => String(m?.senderId?._id || m?.senderId) === String(user._id))
                 .filter(m => (m.isSeenBy || []).map(String).includes(String(otherUser?._id)))
@@ -143,40 +145,86 @@ const ChatWindow = () => {
                 const isImage = m.type === "image";
                 const isVoice = m.type === "voice";
                 return (
-                  <div key={m._id || m.createdAt} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-xs p-3 rounded-2xl text-sm shadow ${mine ? "bg-blue-600 rounded-br-none" : "bg-gray-700 rounded-bl-none"}`}>
-                      {isImage && m.mediaUrl && (
-                        <img src={m.mediaUrl} alt="media" className="max-w-full rounded mb-1" />
-                      )}
-                      {isVoice && m.mediaUrl && (
-                        <audio controls className="w-full mb-1">
-                          <source src={m.mediaUrl} />
-                          Trình duyệt không hỗ trợ audio.
-                        </audio>
-                      )}
-                      {!isImage && !isVoice && <p>{m.text}</p>}
-                      <span className="text-xs text-gray-300 block mt-1 text-right">{formatTime(m.createdAt)}</span>
-                    </div>
-                    {isLastSeen && (
+                  <div key={m._id || m.createdAt} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                    {!mine && (
                       <img
                         src={otherUser?.avatar || "/default-avatar.png"}
-                        alt="seen by"
-                        className="w-4 h-4 rounded-full ml-2 self-end mb-1 border border-gray-600"
-                        title={`Đã xem bởi ${otherUser?.username || "người nhận"}`}
+                        alt="avatar"
+                        className="w-6 h-6 rounded-full object-cover flex-shrink-0"
                       />
                     )}
+                    
+                    <div className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+                      <div className={`max-w-xs px-4 py-3 rounded-2xl shadow-lg transition-all ${
+                        mine 
+                          ? "bg-gradient-to-r from-purple-600 to-blue-600 rounded-br-none" 
+                          : "bg-white/10 border border-white/20 rounded-bl-none"
+                      }`}>
+                        {isImage && m.mediaUrl && (
+                          <img 
+                            src={m.mediaUrl} 
+                            alt="media" 
+                            className="max-w-full rounded-lg mb-2 max-h-64 object-cover" 
+                          />
+                        )}
+                        {isVoice && m.mediaUrl && (
+                          <audio controls className="w-full mb-2 bg-white/5 rounded">
+                            <source src={m.mediaUrl} />
+                            Browser does not support audio.
+                          </audio>
+                        )}
+                        {!isImage && !isVoice && (
+                          <p className="text-sm break-words">{m.text}</p>
+                        )}
+                        <span className={`text-xs block mt-2 text-right ${
+                          mine ? "text-blue-100" : "text-gray-400"
+                        }`}>
+                          {formatTime(m.createdAt)}
+                        </span>
+                      </div>
+                      
+                      {isLastSeen && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <img
+                            src={otherUser?.avatar || "/default-avatar.png"}
+                            alt="seen"
+                            className="w-5 h-5 rounded-full object-cover border border-green-500"
+                            title={`Seen by ${otherUser?.username || "recipient"}`}
+                          />
+                          <span className="text-xs text-green-400">Seen</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               });
             })()
           ) : (
-            <p className="text-gray-500 italic text-sm text-center">Chưa có tin nhắn nào</p>
+            <div className="flex flex-col items-center justify-center h-full">
+              <svg className="w-16 h-16 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p className="text-gray-400 text-center">No messages yet</p>
+              <p className="text-gray-500 text-sm text-center mt-1">Start the conversation!</p>
+            </div>
           )}
           <div ref={bottomRef} />
         </div>
+        
+        {/* Typing Indicator */}
         {otherTyping && (
-          <div className="px-4 py-1 text-xs text-gray-300">{otherUser?.username || "Đối phương"} đang soạn...</div>
+          <div className="px-6 py-2 border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">{otherUser?.username || "User"} is typing</span>
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: "0s"}}></div>
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: "0.1s"}}></div>
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: "0.2s"}}></div>
+              </div>
+            </div>
+          </div>
         )}
+        
         <ChatInput
           onSend={(text) => sendMessage({ conversationId: currentChat._id, senderId: user._id, receiverId: otherUser?._id, text })}
           onTyping={(isTyping) => sendTyping(currentChat._id, isTyping)}

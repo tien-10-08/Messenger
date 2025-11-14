@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { updateProfile } from "../api/profileApi";
 import toast from "react-hot-toast";
+import { Edit, Save, X, Upload } from "lucide-react";
 
 const ProfileForm = ({ user, onUpdated }) => {
   const [form, setForm] = useState({
@@ -35,10 +36,10 @@ const ProfileForm = ({ user, onUpdated }) => {
       }
       const updated = await updateProfile(null, payload);
       onUpdated(updated);
-      toast.success("Cập nhật thành công 🎉");
+      toast.success("Profile updated successfully 🎉");
       setEditing(false);
     } catch (err) {
-      toast.error(err.response?.data?.error || "Cập nhật thất bại!");
+      toast.error(err.response?.data?.error || "Update failed!");
     } finally {
       setLoading(false);
     }
@@ -66,83 +67,115 @@ const ProfileForm = ({ user, onUpdated }) => {
 
   if (!editing) {
     return (
-      <div className="text-sm space-y-2 mt-4">
-        <p>
-          <span className="text-gray-400">Tên hiển thị:</span> {user.username}
-        </p>
-        <p>
-          <span className="text-gray-400">Trạng thái:</span> {user.status || "Không có"}
-        </p>
-        <div className="mt-2 flex items-center gap-3">
-          <img src={user.avatar || "/default-avatar.png"} alt="avatar" className="w-16 h-16 rounded-full object-cover border border-gray-700" />
+      <div className="space-y-6">
+        {/* Avatar Display */}
+        <div>
+          <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Avatar</p>
+          <div className="flex items-end gap-4">
+            <img
+              src={user.avatar || "/default-avatar.png"}
+              alt="avatar"
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-purple-500/50"
+            />
+            <button
+              onClick={() => setEditing(true)}
+              className="px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-medium transition-all flex items-center gap-2 group"
+            >
+              <Edit size={16} className="group-hover:scale-110 transition-transform" />
+              Edit Profile
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setEditing(true)}
-          className="mt-2 bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded-lg text-sm"
-        >
-          Chỉnh sửa
-        </button>
+
+        {/* Username Display */}
+        <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
+          <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Username</p>
+          <p className="text-white font-semibold">{user.username || "N/A"}</p>
+        </div>
+
+        {/* Status Display */}
+        <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
+          <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Status</p>
+          <p className="text-white">{user.status || "No status set"}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 mt-4">
-      <div className="flex items-center gap-3">
-        <img src={preview || "/default-avatar.png"} alt="avatar" className="w-16 h-16 rounded-full object-cover border border-gray-700" />
-        <label className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 cursor-pointer text-sm">
-          Chọn ảnh
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setAvatarFile(file);
-              setPreview(URL.createObjectURL(file));
-            }}
-          />
-        </label>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Avatar Upload Section */}
       <div>
-        <label className="text-xs text-gray-400">Tên</label>
+        <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Update Avatar</p>
+        <div className="flex items-end gap-4">
+          <div className="relative">
+            <img
+              src={preview || "/default-avatar.png"}
+              alt="avatar"
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-purple-500/50"
+            />
+          </div>
+          <label className="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all flex items-center gap-2 cursor-pointer group border border-blue-500/50 hover:border-blue-400/50">
+            <Upload size={16} className="group-hover:scale-110 transition-transform" />
+            Choose Image
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setAvatarFile(file);
+                setPreview(URL.createObjectURL(file));
+              }}
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* Username Field */}
+      <div>
+        <label className="block text-xs uppercase tracking-wider text-gray-500 mb-3">Username</label>
         <input
           type="text"
           name="username"
           value={form.username}
           onChange={handleChange}
-          className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          placeholder="Enter username..."
         />
       </div>
 
+      {/* Status Field */}
       <div>
-        <label className="text-xs text-gray-400">Trạng thái</label>
-        <input
-          type="text"
+        <label className="block text-xs uppercase tracking-wider text-gray-500 mb-3">Status</label>
+        <textarea
           name="status"
           value={form.status}
           onChange={handleChange}
-          className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+          rows="3"
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+          placeholder="What's on your mind?"
         />
       </div>
 
-      <div className="flex gap-2">
+      {/* Action Buttons */}
+      <div className="flex gap-3">
         <button
           type="submit"
           disabled={loading}
-          className={`flex-1 py-2 rounded-lg font-semibold text-white ${
-            loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-          }`}
+          className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:from-gray-600 disabled:to-gray-600 text-white font-semibold transition-all flex items-center justify-center gap-2 group border border-purple-500/50 hover:border-purple-400/50"
         >
-          {loading ? "Đang lưu..." : "Lưu"}
+          <Save size={18} className="group-hover:scale-110 transition-transform" />
+          {loading ? "Saving..." : "Save Changes"}
         </button>
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="flex-1 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white"
+          className="flex-1 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white font-semibold transition-all flex items-center justify-center gap-2 border border-white/10 hover:border-white/20 group"
         >
-          Hủy
+          <X size={18} className="group-hover:scale-110 transition-transform" />
+          Cancel
         </button>
       </div>
     </form>
