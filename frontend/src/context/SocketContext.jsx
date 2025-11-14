@@ -143,14 +143,18 @@ export const SocketProvider = ({ children }) => {
     socket.current?.off(event, handler);
   }, []);
 
+  const emit = useCallback((event, payload) => {
+    socket.current?.emit(event, payload);
+  }, []);
+
   const value = useMemo(() => ({
-    socket: socket.current,
     sendMessage,
     sendTyping,
     joinConversation,
     on,
     off,
-  }), [sendMessage, sendTyping, joinConversation, on, off]);
+    emit,
+  }), [sendMessage, sendTyping, joinConversation, on, off, emit]);
 
   return (
     <SocketContext.Provider value={value}>

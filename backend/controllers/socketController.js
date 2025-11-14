@@ -43,3 +43,33 @@ export const handleJoinConversation = async (io, socket, { conversationId }) => 
     socket.emit("errorMessage", err.message);
   }
 };
+
+// ==== WebRTC voice call signaling ====
+
+export const handleCallUser = (io, socket, { toUserId, fromUser, offer, callType }) => {
+  if (!toUserId || !offer) return;
+  const callee = socketService.getUser(toUserId);
+  if (!callee?.socketId) return;
+  io.to(callee.socketId).emit("incomingCall", {
+    fromUser,
+    fromSocketId: socket.id,
+    offer,
+    callType: callType || "audio",
+  });
+};
+
+export const handleAnswerCall = (io, socket, { toSocketId, answer }) => {
+  if (!toSocketId || !answer) return;
+  io.to(toSocketId).emit("callAnswered", { answer });
+};
+
+export const handleIceCandidate = (io, socket, { toSocketId, candidate }) => {
+  if (!toSocketId || !candidate) return;
+  io.to(toSocketId).emit("iceCandidate", { candidate });
+};
+
+export const handleEndCall = (io, socket, { toSocketId }) => {
+  if (!toSocketId) return;
+  io.to(toSocketId).emit("callEnded");
+};
+

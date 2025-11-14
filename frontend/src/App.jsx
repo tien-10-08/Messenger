@@ -8,13 +8,15 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 import Profile from "./pages/Profile";
 import { UserProvider } from "./context/UserContext";
 import { SocketProvider } from "./context/SocketContext";
+import { CallProvider } from "./context/CallContext";
 function App() {
   return (
     <AuthProvider>
       <UserProvider>
         <ChatProvider>
           <SocketProvider>
-            <Router>
+            <CallProvider>
+              <Router>
               <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
@@ -37,6 +39,7 @@ function App() {
                 />
               </Routes>
             </Router>
+          </CallProvider>
           </SocketProvider>
         </ChatProvider>
       </UserProvider>

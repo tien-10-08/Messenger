@@ -1,8 +1,10 @@
 // src/components/ChatHeader.jsx
 import React from "react";
 import { Info, Phone, Video } from "lucide-react";
+import { useCall } from "../context/CallContext";
 
 const ChatHeader = ({ user, onProfileClick }) => {
+  const { startVoiceCall, startVideoCall } = useCall();
   if (!user) {
     return (
       <div className="border-b border-gray-700 px-4 py-3 text-gray-400">
@@ -33,10 +35,16 @@ const ChatHeader = ({ user, onProfileClick }) => {
 
       {/* Nút hành động */}
       <div className="flex items-center gap-3 text-gray-300">
-        <button className="hover:text-white">
+        <button
+          className="hover:text-white"
+          onClick={() => user && startVoiceCall(user)}
+        >
           <Phone size={20} />
         </button>
-        <button className="hover:text-white">
+        <button
+          className="hover:text-white"
+          onClick={() => user && startVideoCall(user)}
+        >
           <Video size={20} />
         </button>
         <button className="hover:text-white" onClick={onProfileClick}>
