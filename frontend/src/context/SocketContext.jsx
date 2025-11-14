@@ -90,12 +90,24 @@ export const SocketProvider = ({ children }) => {
       }));
     };
 
+    const onMessageSeen = ({ conversationId, messageId, seenBy }) => {
+      if (!messageId || !seenBy) return;
+      console.debug("[socket] messageSeen", { messageId, seenBy });
+      setMessagesRef.current(prev => prev.map(m => {
+        if ((m._id || '').toString() !== (messageId || '').toString()) return m;
+        const existed = (m.isSeenBy || []).map(String);
+        if (existed.includes(String(seenBy))) return m;
+        return { ...m, isSeenBy: [...existed, String(seenBy)] };
+      }));
+    };
+
     socket.current.on("getMessage", onGetMessage);
     socket.current.on("conversationHistory", onConversationHistory);
     socket.current.on("conversationUpdated", onConversationUpdated);
     socket.current.on("userUpdated", onUserUpdated);
     socket.current.on("conversationCreated", onConversationCreated);
     socket.current.on("presenceUpdated", onPresenceUpdated);
+    socket.current.on("messageSeen", onMessageSeen);
 
     return () => {
       socket.current?.off("getMessage", onGetMessage);
@@ -104,6 +116,7 @@ export const SocketProvider = ({ children }) => {
       socket.current?.off("userUpdated", onUserUpdated);
       socket.current?.off("conversationCreated", onConversationCreated);
       socket.current?.off("presenceUpdated", onPresenceUpdated);
+      socket.current?.off("messageSeen", onMessageSeen);
       socket.current?.disconnect();
     };
   }, [user?._id]);

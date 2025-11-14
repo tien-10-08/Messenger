@@ -3,6 +3,7 @@ import * as messageService from "../services/messageService.js";
 import cloudinary from "../utils/cloudinary.js";
 import fs from "fs";
 import Message from "../models/messageModel.js";
+import * as socketService from "../services/socketService.js";
 
 // 📨 Gửi tin nhắn text
 export const sendMessage = async (req, res) => {
@@ -59,6 +60,20 @@ export const markAsSeen = async (req, res) => {
     if (!message.isSeenBy.includes(userId)) {
       message.isSeenBy.push(userId);
       await message.save();
+    }
+
+    // Emit socket event to the conversation room so both sides update UI
+    try {
+      const io = socketService.getIO?.();
+      if (io && message.conversationId) {
+        io.to(String(message.conversationId)).emit("messageSeen", {
+          conversationId: String(message.conversationId),
+          messageId: String(message._id),
+          seenBy: String(userId),
+        });
+      }
+    } catch (e) {
+      // noop
     }
 
     res.status(200).json({ message: "Seen updated", data: message });

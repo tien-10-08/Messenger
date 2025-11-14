@@ -35,3 +35,11 @@ export const sendMessage = async (payload) => {
   }
 };
 
+/**
+ * 👀 Đánh dấu 1 tin nhắn đã xem
+ */
+export const markMessageSeen = async (messageId) => {
+  await API.patch(`/messages/${messageId}/seen`);
+  return true;
+};
+
