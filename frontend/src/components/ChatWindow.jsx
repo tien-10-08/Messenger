@@ -136,6 +136,15 @@ const ChatWindow = () => {
           <ChatHeader
             user={otherUser}
             onProfileClick={() => setShowProfile(true)}
+            conversationInfo={
+              currentChat?._id && otherUser?._id
+                ? {
+                    conversationId: currentChat._id,
+                    recipientId: otherUser._id,
+                    recipientName: otherUser.username,
+                  }
+                : null
+            }
           />
         </div>
 

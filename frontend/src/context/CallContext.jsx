@@ -10,10 +10,11 @@ export const CallProvider = ({ children }) => {
 
   const [inCall, setInCall] = useState(false);
   const [calling, setCalling] = useState(false);
-  const [incomingCall, setIncomingCall] = useState(null); // { fromUser, fromSocketId, offer, callType }
+  const [incomingCall, setIncomingCall] = useState(null); 
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-  const [callType, setCallType] = useState("audio"); // "audio" | "video"
+  const [callType, setCallType] = useState("audio"); 
+  const [callConversationInfo, setCallConversationInfo] = useState(null); 
 
   const pcRef = useRef(null);
   const remoteSocketIdRef = useRef(null);
@@ -39,7 +40,19 @@ export const CallProvider = ({ children }) => {
     pcRef.current = pc;
   };
 
-  const cleanupCall = () => {
+  const cleanupCall = (shouldSendMessage = true) => {
+    if (shouldSendMessage && callConversationInfo && callConversationInfo.conversationId) {
+      const callTypeText = callType === "video" ? "cuộc gọi video" : "cuộc gọi thoại";
+      const autoMessage = `📞 ${callTypeText} đã kết thúc`;
+      
+      emit("sendMessage", {
+        conversationId: callConversationInfo.conversationId,
+        senderId: user._id,
+        receiverId: callConversationInfo.recipientId,
+        text: autoMessage,
+      });
+    }
+
     try {
       pcRef.current?.close();
     } catch {}
@@ -58,10 +71,11 @@ export const CallProvider = ({ children }) => {
     setCallType("audio");
     setCalling(false);
     setInCall(false);
+    setCallConversationInfo(null);
     remoteSocketIdRef.current = null;
   };
 
-  const startVoiceCall = async (targetUser) => {
+  const startVoiceCall = async (targetUser, conversationInfo = null) => {
     if (!user?._id || !targetUser?._id) return;
 
     setCallType("audio");
@@ -75,6 +89,11 @@ export const CallProvider = ({ children }) => {
     await pcRef.current.setLocalDescription(offer);
 
     setCalling(true);
+    
+    if (conversationInfo) {
+      setCallConversationInfo(conversationInfo);
+    }
+    
     emit("callUser", {
       toUserId: targetUser._id,
       fromUser: { _id: user._id, username: user.username, avatar: user.avatar },
@@ -83,7 +102,7 @@ export const CallProvider = ({ children }) => {
     });
   };
 
-  const startVideoCall = async (targetUser) => {
+  const startVideoCall = async (targetUser, conversationInfo = null) => {
     if (!user?._id || !targetUser?._id) return;
 
     setCallType("video");
@@ -97,6 +116,11 @@ export const CallProvider = ({ children }) => {
     await pcRef.current.setLocalDescription(offer);
 
     setCalling(true);
+    
+    if (conversationInfo) {
+      setCallConversationInfo(conversationInfo);
+    }
+    
     emit("callUser", {
       toUserId: targetUser._id,
       fromUser: { _id: user._id, username: user.username, avatar: user.avatar },
@@ -132,14 +156,14 @@ export const CallProvider = ({ children }) => {
     if (incomingCall?.fromSocketId) {
       emit("endCall", { toSocketId: incomingCall.fromSocketId });
     }
-    setIncomingCall(null);
+    cleanupCall(false); 
   };
 
   const endCall = () => {
     if (remoteSocketIdRef.current) {
       emit("endCall", { toSocketId: remoteSocketIdRef.current });
     }
-    cleanupCall();
+    cleanupCall(true);
   };
 
   useEffect(() => {
@@ -165,7 +189,7 @@ export const CallProvider = ({ children }) => {
     };
 
     const onCallEnded = () => {
-      cleanupCall();
+      cleanupCall(true); 
     };
 
     on("incomingCall", onIncomingCall);

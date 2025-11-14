@@ -3,8 +3,9 @@ import React from "react";
 import { Info, Phone, Video } from "lucide-react";
 import { useCall } from "../context/CallContext";
 
-const ChatHeader = ({ user, onProfileClick }) => {
+const ChatHeader = ({ user, onProfileClick, conversationInfo }) => {
   const { startVoiceCall, startVideoCall } = useCall();
+  
   if (!user) {
     return (
       <div className="border-b border-white/10 px-6 py-4 text-gray-400 bg-gradient-to-r from-slate-900 to-slate-800">
@@ -40,14 +41,14 @@ const ChatHeader = ({ user, onProfileClick }) => {
 
       <div className="flex items-center gap-2">
         <button
-          onClick={() => user && startVoiceCall(user)}
+          onClick={() => user && startVoiceCall(user, conversationInfo)}
           className="p-2.5 rounded-lg bg-white/10 hover:bg-blue-600/30 text-blue-300 hover:text-blue-200 transition-all border border-white/10 hover:border-blue-500/50 group"
           title="Start Voice Call"
         >
           <Phone size={20} className="group-hover:scale-110 transition-transform" />
         </button>
         <button
-          onClick={() => user && startVideoCall(user)}
+          onClick={() => user && startVideoCall(user, conversationInfo)}
           className="p-2.5 rounded-lg bg-white/10 hover:bg-green-600/30 text-green-300 hover:text-green-200 transition-all border border-white/10 hover:border-green-500/50 group"
           title="Start Video Call"
         >
