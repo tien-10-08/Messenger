@@ -60,7 +60,6 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
       <div className="max-w-2xl mx-auto p-6">
-        {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
@@ -71,7 +70,6 @@ const Profile = () => {
           <h1 className="text-3xl font-bold">My Profile</h1>
         </div>
 
-        {/* Profile Info Card */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8 mb-8">
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div>
@@ -90,7 +88,6 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Status Info */}
           <div className="p-4 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -99,7 +96,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Edit Profile Form */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
           <h2 className="text-xl font-bold mb-6">Edit Profile</h2>
           <ProfileForm user={profile} onUpdated={handleUpdated} />

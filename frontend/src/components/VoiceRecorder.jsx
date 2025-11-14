@@ -119,7 +119,6 @@ const VoiceRecorder = ({ onFinish, onCancel }) => {
           </div>
         )}
 
-        {/* Controls */}
         <div className="flex gap-3 w-full">
           {!recording ? (
             <button

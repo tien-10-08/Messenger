@@ -74,7 +74,6 @@ export const markAsSeen = asyncHandler(async (req, res) => {
       });
     }
   } catch (e) {
-    // Silently fail
   }
 
   res.status(HTTP_STATUS.OK).json({ message: "Seen updated", data: message });

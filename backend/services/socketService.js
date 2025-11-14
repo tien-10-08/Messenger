@@ -16,7 +16,6 @@ export const getIO = () => ioRef;
  * Add user to online list
  */
 export const addUser = (userId, socketId) => {
-  // Remove old connection if exists
   users = users.filter((u) => u.userId !== userId);
   users.push({ userId, socketId });
 };

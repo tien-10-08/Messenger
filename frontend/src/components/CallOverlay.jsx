@@ -120,7 +120,6 @@ const CallOverlay = () => {
 
           {isVideo ? (
             <div className="w-full flex flex-col items-center gap-3">
-              {/* Remote Video */}
               <div className="relative w-full rounded-2xl overflow-hidden bg-black">
                 <video
                   ref={remoteVideoRef}
@@ -130,7 +129,6 @@ const CallOverlay = () => {
                 />
               </div>
 
-              {/* Local Video - Picture in Picture */}
               <div className="absolute bottom-20 right-6 w-24 h-24 rounded-full overflow-hidden border-4 border-purple-500/50 bg-black shadow-lg">
                 <video
                   ref={localVideoRef}
@@ -154,7 +152,6 @@ const CallOverlay = () => {
             </>
           )}
 
-          {/* Controls */}
           <div className="flex gap-3 mt-4 w-full">
             <button
               onClick={() => setAudioEnabled(!audioEnabled)}

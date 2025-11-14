@@ -63,7 +63,6 @@ const Sidebar = () => {
 
   return (
     <div className="w-80 bg-gradient-to-b from-slate-900 to-slate-800 border-r border-white/10 flex flex-col h-screen">
-      {/* Header */}
       <div className="p-5 border-b border-white/10">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-white">Messages</h1>
@@ -81,7 +80,6 @@ const Sidebar = () => {
           </button>
         </div>
 
-        {/* Search */}
         <div className="relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -96,7 +94,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Search Results */}
       {search.trim() && (
         <div className="bg-white/5 mx-3 mt-3 rounded-xl border border-white/10 max-h-48 overflow-y-auto">
           {searching && (
@@ -123,7 +120,6 @@ const Sidebar = () => {
         </div>
       )}
 
-      {/* Conversations List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {conversations.length > 0 ? (
           conversations.map((c) => {
@@ -162,7 +158,7 @@ const Sidebar = () => {
                       )}
                     </div>
                     {c.lastMessage && (
-                      <p className="text-xs text-gray-400 truncate group-hover:text-gray-300">
+                      <p className="text-xs text-gray-400 truncate group-hover:text-gray-300 h-4 leading-4">
                         {c.lastMessage}
                       </p>
                     )}
@@ -182,7 +178,6 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* Logout Button */}
       <div className="p-4 border-t border-white/10">
         <button
           onClick={logout}

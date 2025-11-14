@@ -68,7 +68,6 @@ const ProfileForm = ({ user, onUpdated }) => {
   if (!editing) {
     return (
       <div className="space-y-6">
-        {/* Avatar Display */}
         <div>
           <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Avatar</p>
           <div className="flex items-end gap-4">
@@ -87,13 +86,11 @@ const ProfileForm = ({ user, onUpdated }) => {
           </div>
         </div>
 
-        {/* Username Display */}
         <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
           <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Username</p>
           <p className="text-white font-semibold">{user.username || "N/A"}</p>
         </div>
 
-        {/* Status Display */}
         <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
           <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Status</p>
           <p className="text-white">{user.status || "No status set"}</p>
@@ -104,7 +101,6 @@ const ProfileForm = ({ user, onUpdated }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Avatar Upload Section */}
       <div>
         <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Update Avatar</p>
         <div className="flex items-end gap-4">
@@ -133,7 +129,6 @@ const ProfileForm = ({ user, onUpdated }) => {
         </div>
       </div>
 
-      {/* Username Field */}
       <div>
         <label className="block text-xs uppercase tracking-wider text-gray-500 mb-3">Username</label>
         <input
@@ -146,7 +141,6 @@ const ProfileForm = ({ user, onUpdated }) => {
         />
       </div>
 
-      {/* Status Field */}
       <div>
         <label className="block text-xs uppercase tracking-wider text-gray-500 mb-3">Status</label>
         <textarea
@@ -159,7 +153,6 @@ const ProfileForm = ({ user, onUpdated }) => {
         />
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-3">
         <button
           type="submit"

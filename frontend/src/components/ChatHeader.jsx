@@ -18,7 +18,6 @@ const ChatHeader = ({ user, onProfileClick }) => {
 
   return (
     <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-4">
-      {/* User Info */}
       <div
         className="flex items-center gap-4 cursor-pointer group"
         onClick={onProfileClick}
@@ -39,7 +38,6 @@ const ChatHeader = ({ user, onProfileClick }) => {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => user && startVoiceCall(user)}

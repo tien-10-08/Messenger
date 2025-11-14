@@ -6,7 +6,6 @@ const ProfilePanel = ({ user, onClose }) => {
   
   return (
     <div className="w-80 bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col border-l border-white/10">
-      {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <h2 className="text-xl font-bold">Profile</h2>
         <button
@@ -17,9 +16,7 @@ const ProfilePanel = ({ user, onClose }) => {
         </button>
       </div>
 
-      {/* Profile Content */}
       <div className="flex-1 overflow-y-auto p-6">
-        {/* Avatar Section */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative mb-4">
             <img
@@ -35,15 +32,12 @@ const ProfilePanel = ({ user, onClose }) => {
           )}
         </div>
 
-        {/* User Info */}
         <div className="space-y-4 mb-6">
-          {/* Username */}
           <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Username</p>
             <p className="text-white font-semibold truncate">{safeUser.username || "N/A"}</p>
           </div>
 
-          {/* Status */}
           <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Status</p>
             <p className="text-white text-sm">
@@ -53,7 +47,6 @@ const ProfilePanel = ({ user, onClose }) => {
             </p>
           </div>
 
-          {/* Member Since */}
           <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Member Since</p>
             <p className="text-white text-sm">
@@ -67,7 +60,6 @@ const ProfilePanel = ({ user, onClose }) => {
             </p>
           </div>
 
-          {/* Join Time */}
           {safeUser.createdAt && (
             <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
               <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Join Time</p>
@@ -82,7 +74,6 @@ const ProfilePanel = ({ user, onClose }) => {
           )}
         </div>
 
-        {/* Status Badge */}
         <div className="p-4 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl text-center">
           <div className="flex items-center justify-center gap-2">
             <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>

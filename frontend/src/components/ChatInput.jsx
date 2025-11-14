@@ -22,7 +22,6 @@ const ChatInput = ({ onSend, onTyping, onSendMedia }) => {
 
   return (
     <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-5 flex gap-3 border-t border-white/10 items-end">
-      {/* Image Upload Button */}
       <button
         type="button"
         onClick={() => imageInputRef.current?.click()}
@@ -32,7 +31,6 @@ const ChatInput = ({ onSend, onTyping, onSendMedia }) => {
         <Image size={20} className="group-hover:scale-110 transition-transform" />
       </button>
 
-      {/* Voice Record Button */}
       <button
         type="button"
         onClick={() => setShowRecorder(true)}
@@ -42,7 +40,6 @@ const ChatInput = ({ onSend, onTyping, onSendMedia }) => {
         <Mic size={20} className="group-hover:scale-110 transition-transform" />
       </button>
 
-      {/* Hidden File Input */}
       <input
         ref={imageInputRef}
         type="file"
@@ -55,7 +52,6 @@ const ChatInput = ({ onSend, onTyping, onSendMedia }) => {
         }}
       />
 
-      {/* Voice Recorder Modal */}
       {showRecorder && (
         <VoiceRecorder
           onFinish={(blob) => {
@@ -73,7 +69,6 @@ const ChatInput = ({ onSend, onTyping, onSendMedia }) => {
         />
       )}
 
-      {/* Message Input */}
       <input
         value={text}
         onChange={(e) => {
@@ -92,7 +87,6 @@ const ChatInput = ({ onSend, onTyping, onSendMedia }) => {
         className="flex-1 bg-white/10 text-white p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent border border-white/20 transition-all placeholder-gray-500"
       />
 
-      {/* Send Button */}
       <button
         onClick={handleSend}
         disabled={!text.trim() || isSending}
