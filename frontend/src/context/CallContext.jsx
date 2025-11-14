@@ -107,6 +107,7 @@ export const CallProvider = ({ children }) => {
 
   const acceptCall = async () => {
     if (!incomingCall) return;
+    
     const { fromSocketId, offer, callType: incomingType } = incomingCall;
 
     setCallType(incomingType || "audio");
@@ -148,6 +149,7 @@ export const CallProvider = ({ children }) => {
 
     const onCallAnswered = async ({ answer }) => {
       if (!pcRef.current) return;
+      
       await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
       setInCall(true);
       setCalling(false);

@@ -63,7 +63,7 @@ const Sidebar = () => {
 
   return (
     <div className="w-80 bg-gradient-to-b from-slate-900 to-slate-800 border-r border-white/10 flex flex-col h-screen">
-      <div className="p-5 border-b border-white/10">
+      <div className="p-5 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-white">Messages</h1>
           <button
@@ -95,7 +95,7 @@ const Sidebar = () => {
       </div>
 
       {search.trim() && (
-        <div className="bg-white/5 mx-3 mt-3 rounded-xl border border-white/10 max-h-48 overflow-y-auto">
+        <div className="bg-white/5 mx-3 mt-3 rounded-xl border border-white/10 max-h-48 overflow-y-auto flex-shrink-0">
           {searching && (
             <div className="p-4 text-center text-gray-400 text-sm">
               <div className="inline-block w-5 h-5 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
@@ -120,7 +120,7 @@ const Sidebar = () => {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
         {conversations.length > 0 ? (
           conversations.map((c) => {
             const members = Array.isArray(c.members) ? c.members : [];
@@ -178,7 +178,7 @@ const Sidebar = () => {
         )}
       </div>
 
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-white/10 flex-shrink-0">
         <button
           onClick={logout}
           className="w-full px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 font-medium transition-all text-sm border border-red-500/30 hover:border-red-500/50"

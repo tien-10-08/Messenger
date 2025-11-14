@@ -30,7 +30,6 @@ export const handleSendMessage = async (io, socket, data) => {
   try {
     await socketService.createAndSendMessage(io, data);
   } catch (err) {
-    console.error("❌ sendMessage error:", err.message);
     socket.emit(SOCKET_EVENTS.ERROR_MESSAGE, err.message);
   }
 };
