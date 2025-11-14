@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 // Create axios instance
 export const apiClient = axios.create({
